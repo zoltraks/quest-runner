@@ -307,7 +307,7 @@ task(() => {
 });
 ```
 
-```
+```json
 {
     "url": "https://jsonplaceholder.typicode.com/posts/1",
     "method": "GET",
@@ -322,7 +322,7 @@ task(() => {
 }
 ```
 
-```
+```json
 {
     "url": "https://jsonplaceholder.typicode.com/posts",
     "method": "POST",
@@ -394,7 +394,7 @@ task(() => {
 });
 ```
 
-```
+```json
 {
     "url": "https://jsonplaceholder.typicode.com/posts/1",
     "method": "GET",
