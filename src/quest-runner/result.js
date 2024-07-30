@@ -163,10 +163,12 @@ class Result {
         const utils = require('./utils');
         const ansi = require('ansi-colors');
 
-        const sizeName = 40;
+        const sizeName = config?.sizeName ?? 0 + process.env.SIZE_STEP_NAME > 0 ? process.env.SIZE_STEP_NAME : 40;
         const sizeResult = 80;
         const includeStart = config?.includeStart ?? utils.stringToBoolean(process.env.HIDE_START_TIME) ? false : true;
         const hideStepName = utils.stringToBoolean(config?.hideStepName != undefined ? config?.hideStepName : process.env.HIDE_STEP_NAME);
+        const hideStepError = utils.stringToBoolean(config?.hideStepError != undefined ? config?.hideStepResult : process.env.HIDE_STEP_ERROR);
+        const hideStepResult = utils.stringToBoolean(config?.hideStepResult != undefined ? config?.hideStepResult : process.env.HIDE_STEP_RESULT);
 
         let printRuler = false;
         if (this.stack.length <= 0) return;
@@ -200,10 +202,10 @@ class Result {
                 if (hideStepName) name = '';
                 let result;
                 let color;
-                if (execution.error) {
+                if (execution.error && !hideStepError) {
                     color = ansi.redBright;
                     result = execution.error.replace(/\s+/g, ' ').trim();
-                } else if (execution.result) {
+                } else if (execution.result && !hideStepResult) {
                     color = ansi.greenBright;
                     result = execution.result;
                     if (Array.isArray(result)) result = result.join('\n');

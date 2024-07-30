@@ -769,6 +769,18 @@ When set to ``1`` start time will not be displayed in results.
 
 When set to ``1`` step name will remain hidden in results.
 
+### ``HIDE_STEP_RESULT`` ###
+
+When set to ``1`` step result will remain hidden in results.
+
+### ``HIDE_STEP_ERROR`` ###
+
+When set to ``1`` step error will remain hidden in results.
+
+### ``SIZE_STEP_NAME`` ###
+
+Step name size limit. Default is 40.
+
 ## Author ##
 
 **Filip Golewski**
