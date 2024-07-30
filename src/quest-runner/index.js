@@ -62,13 +62,14 @@ const step = (name, code, info) => {
 
 let playing = false;
 
-const play = () => {
+const play = argv => {
     if (playing) return;
     playing = true;
+    if (argv == undefined) argv = require('./line.js');
     return new Promise((resolve, reject) => {
         setTimeout(async () => {
             try {
-                const result = await run();
+                const result = await run(argv);
                 playing = false;
                 resolve(result);
             }
@@ -80,8 +81,14 @@ const play = () => {
     });
 }
 
-const run = async () => {
+const run = async argv => {
+    const path = require('path');
     const hideStartTime = utils.stringToBoolean(process.env.HIDE_START_TIME);
+    if (argv && argv.verbose && argv.file) {
+        console.log();
+        const relative = path.relative(process.cwd(), argv.file);
+        console.log(`${ansi.yellowBright('FILE')} ${ansi.greenBright(relative)}`);
+    }
     if (!hideStartTime) {
         console.log();
         console.log(`${ansi.magentaBright('TIME')} ${ansi.whiteBright(utils.getTimeString(new Date()))}`);

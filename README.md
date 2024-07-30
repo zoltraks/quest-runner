@@ -21,7 +21,7 @@ Install with [npm](https://www.npmjs.com/) in current directory:
 $ npm install quest-runner
 ``` 
 
-This tool depends on several [npm](https://www.npmjs.com/) packages like ``axios``, ``ping``, ``ansi-colors``, ``color-support``. 
+This tool depends on several [npm](https://www.npmjs.com/) packages like ``axios``, ``ping``, ``yargs``, ``ansi-colors``, ``color-support``. 
 
 Required packages will be also installed.
 
@@ -63,6 +63,14 @@ npx quest-runner run my
 
 If all steps succeeds return code will be ``0`` (success).
 If any step fails return code ``$?`` in bash for example will be ``1``.
+
+## Command line usage ##
+
+Using ``npx quest-runner`` you can use several options.
+
+To see all options execute ``npx quest-runner --help``.
+
+## Example ##
 
 Let's create network ping example in ``ping.quest.js``.
 

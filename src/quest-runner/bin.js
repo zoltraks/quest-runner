@@ -1,9 +1,23 @@
 #!/usr/bin/env node
 
 async function main() {
+    const argv = require('./line.js');
+
+    if (argv.version) {
+        const package = require('./package.json');
+        console.log(package.version);
+        process.exit(0);
+    }
+
+    if (argv.help) {
+        require('yargs/yargs').showHelp();
+        process.exit(0);
+    }
+
     const fs = require('fs').promises;
+    const rest = argv._;
     try {
-        let command = (process.argv[2] ?? '').toLowerCase();
+        let command = (rest[0] ?? '').toLowerCase();
         let name;
         switch (command.toLowerCase()) {
             case '':
@@ -55,16 +69,18 @@ async function main() {
                     file += suffix;
                     exists = true;
                     break;
-                } catch { continue; }
+                }
+                catch { }
             };
             if (!exists) {
                 console.error(`Script not found ${file}`);
                 return;
             }
+            argv.file = file;
             const code = '' + await fs.readFile(file);
             const { task, step, play } = require('./index.js');
             eval(code);
-            const result = await play();
+            const result = await play(argv ?? {});
             if (result != undefined) {
                 result.draw();
                 result.print();
