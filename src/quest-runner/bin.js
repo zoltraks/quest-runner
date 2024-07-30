@@ -1,29 +1,50 @@
 #!/usr/bin/env node
 
 async function main() {
+    const fs = require('fs').promises;
     try {
-        let file;
         let command = (process.argv[2] ?? '').toLowerCase();
+        let name;
         switch (command.toLowerCase()) {
             case '':
                 command = 'run';
                 break;
             case 'run':
-                file = process.argv[3];
+                name = process.argv[3];
                 break;
             default:
                 throw Error(`Unknown command ${command}`);
         }
-
         if (command === 'run') {
-            const fs = require('fs').promises;
-            if (!file) {
-                const currentDir = process.cwd();
-                const allFiles = await fs.readdir(currentDir);
-                const filteredFiles = allFiles.filter(name => name.endsWith('.quest.js'));
-                file = filteredFiles[0];
+            let file;
+            if (name != undefined) {
+                for (const e of [name, name + '.quest.js']) {
+                    try {
+                        await fs.access(e);
+                        file = e;
+                        break;
+                    }
+                    catch { }
+                }
             }
-            if (!file) {
+            if (file == undefined) {
+                const path = require('path');
+                for (const sub of ['', 'quest', 'test', '../quest', '../test']) {
+                    const dir = 0 < sub.length ? path.join(process.cwd(), sub) : process.cwd();
+                    if (!isDirectory(dir)) continue;
+                    const all = await fs.readdir(dir);
+                    let files = all.filter(path => {
+                        if (name != undefined && !path.startsWith(name)) return false;
+                        return path.endsWith('.quest.js');
+                    });
+                    if (files.length > 0) {
+                        files.sort();
+                        file = path.join(dir, files[0]);
+                    }
+                    if (file != undefined) break;
+                }
+            }
+            if (file == undefined) {
                 console.error('No script found. Go and create file that name ends with ".quest.js".');
                 return;
             }
@@ -53,6 +74,29 @@ async function main() {
     catch (error) {
         console.error(error.message);
         process.exit(1);
+    }
+}
+
+function isDirectory(path) {
+    const fs = require('fs');
+    try {
+        const stats = fs.statSync(path);
+        return stats.isDirectory();
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return false;
+        }
+        throw error;
+    }
+}
+
+async function fileExists(file) {
+    const fs = require('fs').promises;
+    try {
+        await fs.access(file, fs.constants.F_OK);
+        return true;
+    } catch (err) {
+        return false;
     }
 }
 
