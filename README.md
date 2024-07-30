@@ -521,6 +521,8 @@ To store information that will be available for other steps you can use ``x.setP
 
 Parameter names as well as HTTP headers are case insensitive.
 
+Parameters are stored globally and available through all tasks.
+
 ```js
 task('Parameter play', () => {
 
@@ -616,7 +618,7 @@ task(() => {
 });
 ```
 
-For initial settings like base URL for API calls you may use ``BASE_URL`` environment variable or simple ``step`` to initialize it to valid prefix.
+For initial settings like base URL for API calls you may use ``BASE_URL`` environment variable or ``step`` code to initialize it.
 
 ```js
 task(() => {
@@ -626,7 +628,46 @@ task(() => {
 });
 ```
 
-Remember that all parameters as well as base url set in any ``step`` like in above case are valid only in ``task`` they belong.
+Once base URL is set, it will remain for other tasks.
+
+## Initialization and finalization ##
+
+As mentioned before, parameters are shared between tasks, so we can use them to separate initialization and finalization (cleanup) sections of scenario.
+
+```js
+task('Initialize', () => {
+
+    step(async x => {
+        x.setBase(process.env.BASE_URL ?? 'https://jsonplaceholder.typicode.com/');
+    });
+
+});
+
+task('Work', () => {
+
+    step(async x => {
+        await x.call('POST', '/posts');
+        x.result(x.getSummary());
+        x.setParameter('X-Id', x.getResponse().data.id);
+    });
+
+});
+
+task('Finalize', () => {
+
+    step(async x => {
+        if (x.getParameter('X-Id')) {
+            await x.call('DELETE', `/posts/${x.getParameter('X-Id')}`);
+            x.result(x.getSummary());
+        }
+    });
+
+});
+```
+
+![](media/shot/initialize-finalize.png)
+
+This way even if erorr occurs and exception is thrown in one task, it is still possible to do some cleanup stuff in different task.
 
 ## Assertions and expectancy ##
 

@@ -48,13 +48,13 @@ class Expect extends Assert {
 
     async expectAlive(host, config, message) {
         const ansi = require('ansi-colors');
-        if (host == undefined || typeof(host) !== 'string' || !(host = host.trim()).length) return;
-        if (config != undefined && message == undefined && typeof(config) === 'string') {
+        if (host == undefined || typeof (host) !== 'string' || !(host = host.trim()).length) return;
+        if (config != undefined && message == undefined && typeof (config) === 'string') {
             message = config;
             config = undefined;
         }
         const ping = require('ping');
-        if (config == undefined || typeof(config) !== 'object') config = {};
+        if (config == undefined || typeof (config) !== 'object') config = {};
         const print = !!config.print;
         config = {
             timeout: 5,

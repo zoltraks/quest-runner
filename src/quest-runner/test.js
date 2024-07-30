@@ -130,7 +130,7 @@ class Test extends Expect {
     setParameter(name, value) {
         if (name == undefined) return;
         if (this.parameters == undefined) this.parameters = {};
-        const search = name.toLowerCase(); 
+        const search = name.toLowerCase();
         let key = Object.keys(this.parameters).find(name => name.toLowerCase() === search);
         if (value == undefined) {
             if (key != undefined) delete this.parameters[key];

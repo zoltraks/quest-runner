@@ -93,17 +93,26 @@ const run = async () => {
     let entry;
     let number = 0;
     let fail;
+    let parameters = {};
+    let base = undefined;
+
     for (const task of state.task) {
+
         try {
+
             number++;
             if (task.info != undefined && typeof task.info === 'object') {
                 if (typeof task.info.skip === 'boolean' && task.info.skip) {
                     continue;
                 }
             }
+
             console.log(`${ansi.blueBright('TASK')} ${ansi.bgBlue(' ' + ansi.whiteBright(number) + ' ')}${task.name ? ' ' : ''}${task.name}`);
             console.log();
+
             state.test = new Test();
+            state.test.base = base;
+            state.test.parameters = parameters;
             state.step = [];
             if (task.code && typeof task.code === 'function') {
                 await task.code(state.test);
@@ -184,6 +193,8 @@ const run = async () => {
                     }
                 }
 
+                parameters = state.test.parameters;
+                base = state.test.base;
             }
         }
         catch (error) {
