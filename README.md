@@ -70,7 +70,25 @@ Using ``npx quest-runner`` you can use several options.
 
 To see all options execute ``npx quest-runner --help``.
 
-## Example ##
+## Code linting ##
+
+If you use [eslint](https://eslint.org) then you can add ``task``, ``step`` and optionally ``play`` functions to your globals in ``.eslintrc.json``.
+
+```json
+{
+    "rules": {
+
+        "globals": {
+            "play": "readonly",
+            "task": "readonly",
+            "step": "readonly"
+        }
+
+    }
+}
+```
+
+## Advanced examples ##
 
 Let's create network ping example in ``ping.quest.js``.
 
@@ -500,7 +518,7 @@ task(() => {
 ERROR timeout of 300ms exceeded
 ```
 
-But you can choose to ignore connection errors by setting ``bypass`` options to ``true``.
+But you can choose to ignore connection errors by setting ``ignore`` options to ``true``.
 Error will still be available in response ``error`` field. 
 
 ```js
@@ -510,7 +528,7 @@ task(() => {
 
     step(async x => {
         x.setTimeout(500);
-        await x.call('GET', 'stupid.local', undefined, undefined, { bypass: true });
+        await x.call('GET', 'stupid.local', undefined, undefined, { ignore: true });
         x.assertEmpty(x.getResponse().error);
     });
 
@@ -600,7 +618,25 @@ task(() => {
 }, { skip: true });
 ```
 
-Also steps can be left unnamed, have several names. 
+When using the ``--task`` command line option (which is not yet supported, sorry, next time),
+not only the specified task will be started, even if it has the ``skip`` option set to ``true``,
+but also all tasks that have the ``always`` option set to ``true``.
+
+```js
+task(() => {
+
+    step('Initialization', null);
+
+}, { always: true });
+
+task(() => {
+
+    step('Finalization', null);
+
+}, { always: true });
+```
+
+Also steps can be left unnamed, have several names or duplicate names.
 
 You might want to use empty names in some cases.
 
@@ -609,10 +645,12 @@ task(() => {
 
     step('', () => {});
 
-    step(['', 'not empty alias'], () => {});
+    step(['', 'not empty alias', 'STEP-XXX'], () => {});
 
 };
 ```
+
+Having multiple step aliases may be handy for ``x.next()``.
 
 Step code can be left empty but you need to pass ``null`` as second argument otherwise first argument will be treated as code source.
 
@@ -754,6 +792,47 @@ task(() => {
 ```
 
 ![](media/shot/expect-call.png)
+
+## Utility functions ##
+
+Print out current time without date part.
+
+```js
+x.time();
+```
+
+Current time is returned so you can store it in variable.
+
+You can also omit printing time passing option ``silent`` set to ``true``.
+
+```js
+const time = x.time({ silent: true });
+x.print(time);
+```
+
+Print "Press Enter to continue..." and wait for user to press enter key.
+
+```js
+await x.pause();
+```
+
+Customize pause message by passing string as function argument.
+
+```js
+await x.pause('Enter anything... ');
+```
+
+You can pass number of seconds as ``time`` options to set timeout and continue even if user doesn't enter anything.
+
+```js
+await x.pause({ time: 3 });
+```
+
+Combine options as function parameter customizing text and setting timeout.
+
+```js
+await x.pause({ text: 'Wait 3 seconds or press enter...', time: 3 });
+```
 
 ## Environment variables ##
 
