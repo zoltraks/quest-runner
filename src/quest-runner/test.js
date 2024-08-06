@@ -199,6 +199,17 @@ class Test extends Expect {
         console.log();
     }
 
+    time(options) {
+        const ansi = require('ansi-colors');
+        const utils = require('./utils.js');
+        const value = utils.getTimeString(new Date());
+        if (options?.silent !== true) {
+            console.log(`${ansi.greenBright('TIME')} ${ansi.whiteBright(value.substring(11))}`);
+            console.log();
+        }
+        return value;
+    }
+
     sanitize(s) {
         if (s == undefined) return s;
         if (typeof s === 'object') {
@@ -331,8 +342,10 @@ class Test extends Expect {
                 });
             }
 
-            console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
-            console.log();
+            if (options?.silent !== true) {
+                console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
+                console.log();
+            }
 
             let result;
 
@@ -427,7 +440,7 @@ class Test extends Expect {
         this.response = response;
         this.summary = summary;
 
-        if (response.error != undefined && options?.bypass !== true) {
+        if (response.error != undefined && options?.ignore !== true) {
             throw Error(response.error);
         }
 
@@ -470,6 +483,40 @@ class Test extends Expect {
     wait(ms) {
         if (0 + ms < 1) ms = 1000;
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async pause(options) {
+        if (typeof options === 'string') options = { text: options };
+        const ansi = require('ansi-colors');
+        const readline = require('node:readline');
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        const time = (options?.time ?? 10) * 1000;
+        let query = options?.text;
+        if (query == undefined) query = '' +
+            ansi.whiteBright('Press ') +
+            ansi.greenBright('Enter ') +
+            ansi.whiteBright('to continue... ');
+        try {
+            await new Promise(resolve => {
+                const ac = new AbortController();
+                const signal = ac.signal;
+                signal.addEventListener('abort', () => {
+                    resolve();
+                }, { once: true });
+                rl.question(query, { signal }, _answer => {
+                    resolve();
+                    rl.close();
+                });
+                if (time > 0) setTimeout(() => ac.abort(), time);
+            });
+        } catch (error) {
+        } finally {
+            rl.close();
+            console.log();
+        }
     }
 }
 
