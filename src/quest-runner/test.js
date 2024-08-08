@@ -146,17 +146,17 @@ class Test extends Expect {
 
     getRequest() {
         if (this.request == undefined) return this.request;
-        return { ...this.request };
+        return JSON.parse(JSON.stringify(this.request));
     }
 
     getResponse() {
         if (this.response == undefined) return this.response;
-        return { ...this.response };
+        return JSON.parse(JSON.stringify(this.response));
     }
 
     getSummary() {
         if (this.summary == undefined) return this.summary;
-        return { ...this.summary };
+        return JSON.parse(JSON.stringify(this.summary));
     }
 
     getRandomInteger(min, max) {
