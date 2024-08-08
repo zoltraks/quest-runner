@@ -115,6 +115,21 @@ class Utils {
         return text;
     }
 
+    squeeze = (array, limit = 10, separator = '...') => {
+        if (array == undefined) return array;
+        if (typeof array !== 'object' || !Array.isArray(array)) return array;
+        if (array.length <= limit) return array;
+        if (separator == undefined) {
+            const half = Math.floor(limit / 2);
+            const result = [ ...array.slice(0, half), ...array.slice(half - limit) ];
+            return result;
+        } else {
+            const half = Math.floor((limit - 1) / 2);
+            const result = [ ...array.slice(0, half), separator, ...array.slice(1 + half - limit) ];
+            return result;
+        }
+    };
+
 }
 
 module.exports = new Utils;

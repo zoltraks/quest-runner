@@ -228,6 +228,10 @@ class Test extends Expect {
         return s;
     }
 
+    squeeze(array, limit = 10, separator = '...') {
+        return utils.squeeze(array, limit, separator);
+    }
+
     timeout;
 
     setTimeout(timeout) {
@@ -343,7 +347,18 @@ class Test extends Expect {
             }
 
             if (options?.silent !== true) {
-                console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
+                let anonymous = true;
+                for (const header in request.headers) {
+                    if (header.toLowerCase() === 'authorization') {
+                        anonymous = false;
+                        break;
+                    }
+                }
+                if (anonymous) {
+                    console.log(`${ansi.greenBright('CALL')} ${ansi.blueBright(method)} ${ansi.yellowBright(url)}`);
+                } else {
+                    console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
+                }
                 console.log();
             }
 
@@ -493,29 +508,40 @@ class Test extends Expect {
             input: process.stdin,
             output: process.stdout,
         });
+        process.stdin.setRawMode(true);
+        process.stdin.resume();
         const time = (options?.time ?? 10) * 1000;
         let query = options?.text;
-        if (query == undefined) query = '' +
+        if (query === undefined) query = '' +
             ansi.whiteBright('Press ') +
             ansi.greenBright('Enter ') +
             ansi.whiteBright('to continue... ');
+        if (query != undefined && 0 === ('' + query).trim().length) query = undefined;
+        let enter = false;
         try {
+            if (query != undefined) process.stdout.write(query);
             await new Promise(resolve => {
                 const ac = new AbortController();
                 const signal = ac.signal;
                 signal.addEventListener('abort', () => {
+                    readline.moveCursor(process.stdout, 0, -1);
                     resolve();
                 }, { once: true });
-                rl.question(query, { signal }, _answer => {
+                rl.question(query ?? '', { signal }, _answer => {
+                    if (query != undefined) {
+                        readline.moveCursor(process.stdout, 0, -1);
+                        readline.clearLine(process.stdout, 1);
+                    }
+                    enter = true;
                     resolve();
-                    rl.close();
                 });
                 if (time > 0) setTimeout(() => ac.abort(), time);
             });
         } catch (error) {
         } finally {
             rl.close();
-            console.log();
+            process.stdin.setRawMode(false);
+            if (query != undefined && !enter) console.log();
         }
     }
 }
