@@ -78,7 +78,9 @@ async function main() {
             }
             argv.file = file;
             const code = '' + await fs.readFile(file);
-            const { task, step, play } = require('./index.js');
+            const { task, step, play, mode } = require('./index.js');
+            if ((argv.task || []).length > 0) mode.task = argv.task;
+            if ((argv.skip || []).length > 0) mode.skip = argv.skip;
             eval(code);
             const result = await play(argv ?? {});
             if (result != undefined) {

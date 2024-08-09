@@ -32,6 +32,8 @@ const { AssertionError } = require('./assert.js');
 
 const state = { task: [] };
 
+const mode = {};
+
 const task = (name, code, info) => {
     if (typeof name === 'function') {
         info = code;
@@ -108,10 +110,44 @@ const run = async argv => {
         try {
 
             number++;
-            if (task.info != undefined && typeof task.info === 'object') {
-                if (typeof task.info.skip === 'boolean' && task.info.skip) {
-                    continue;
+
+            let skip = false;
+
+            if (task.info != undefined && typeof task.info === 'object') { 
+                if (task.info.skip === true) {
+                    skip = true;
                 }
+            }
+
+            if (typeof mode.task === 'object' && Array.isArray(mode.task)) {
+                const value = (task.name ?? '').toLowerCase();
+                skip = true;
+                for (const check of mode.task) {
+                    if (value === check.toLowerCase()) {
+                        skip = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!skip && typeof mode.skip === 'object' && Array.isArray(mode.skip)) {
+                const value = (task.name ?? '').toLowerCase();
+                for (const check of mode.skip) {
+                    if (value === check.toLowerCase()) {
+                        skip = true;
+                        break;
+                    }
+                }
+            }
+
+            if (skip && task.info != undefined && typeof task.info === 'object') { 
+                if (task.info.always === true) {
+                    skip = false;
+                }
+            }
+
+            if (skip) {
+                continue;
             }
 
             console.log(`${ansi.blueBright('TASK')} ${ansi.bgBlue(' ' + ansi.whiteBright(number) + ' ')}${task.name ? ' ' : ''}${task.name}`);
@@ -251,5 +287,6 @@ const run = async argv => {
 module.exports = {
     task,
     step,
-    play
+    play,
+    mode,
 };

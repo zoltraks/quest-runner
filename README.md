@@ -62,6 +62,7 @@ npx quest-runner run my
 ```
 
 If all steps succeeds return code will be ``0`` (success).
+
 If any step fails return code ``$?`` in bash for example will be ``1``.
 
 ## Command line usage ##
@@ -69,6 +70,34 @@ If any step fails return code ``$?`` in bash for example will be ``1``.
 Using ``npx quest-runner`` you can use several options.
 
 To see all options execute ``npx quest-runner --help``.
+
+```
+Options:
+      --skip     Skip task (may be used more than once)                  [array]
+      --task     Run specified task (may be used more than once)         [array]
+  -V, --version  Show version number                                   [boolean]
+  -?, --help     Show help                                             [boolean]
+  -v, --verbose  Verbose mode                                          [boolean]
+  -s, --silent   Silent mode                                           [boolean]
+```
+
+To run specified task (one or more) and skip all other without ``always`` flag use ``--task`` parameter.
+
+You may use it more than once to specify more tasks to be run.
+
+```
+npx quest-runner --task "Task 1" --task "Task 3"
+```
+
+To skip one or more tasks use ``--skip`` parameter.
+
+```
+npx quest-runner --skip "Task 2"
+```
+
+If using ``--skip`` and ``--task`` with the same name, skip takes precedence.
+
+Task names used in ``--task`` and ``--skip`` parameters are case insensitive.
 
 ## Code linting ##
 

@@ -1,14 +1,21 @@
 const yargs = require('yargs/yargs')
-const argv = yargs(process.argv.slice(2))
+const { hideBin } = require('yargs/helpers');
+const argv = yargs(hideBin(process.argv))
     .boolean('version')
     .boolean('help')
     .boolean('verbose')
     .boolean('silent')
+    .option('skip')
+    .array('skip')
+    .option('task')
+    .array('task')
     .alias('V', 'version')
     .alias('?', 'help')
     .alias('v', 'verbose')
     .alias('s', 'silent')
     .describe('verbose', 'Verbose mode')
     .describe('silent', 'Silent mode')
+    .describe('skip', 'Skip task (may be used more than once)')
+    .describe('task', 'Run specified task (may be used more than once)')
     .parse();
 module.exports = argv;

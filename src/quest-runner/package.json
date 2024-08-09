@@ -1,6 +1,6 @@
 {
   "name": "quest-runner",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Tool for creating and processing logic flow scenarios",
   "main": "index.js",
   "scripts": {
