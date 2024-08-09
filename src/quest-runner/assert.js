@@ -1,6 +1,7 @@
 class Assert {
 
     assert(message) {
+        if (typeof message === 'object') message = JSON.stringify(message);
         if (message) {
             console.error(message);
             console.log();
