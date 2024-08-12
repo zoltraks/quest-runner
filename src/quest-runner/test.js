@@ -508,40 +508,41 @@ class Test extends Expect {
             input: process.stdin,
             output: process.stdout,
         });
-        process.stdin.setRawMode(true);
-        process.stdin.resume();
-        const time = (options?.time ?? 10) * 1000;
-        let query = options?.text;
-        if (query === undefined) query = '' +
+        const time = (0 + options?.time) * 1000;
+        let question = options?.text;
+        if (question === undefined) question = '' +
             ansi.whiteBright('Press ') +
             ansi.greenBright('Enter ') +
             ansi.whiteBright('to continue... ');
-        if (query != undefined && 0 === ('' + query).trim().length) query = undefined;
+        if (question != undefined && 0 === ('' + question).trim().length) question = undefined;
         let enter = false;
+        process.stdin.resume();
         try {
-            if (query != undefined) process.stdout.write(query);
             await new Promise(resolve => {
                 const ac = new AbortController();
                 const signal = ac.signal;
                 signal.addEventListener('abort', () => {
-                    readline.moveCursor(process.stdout, 0, -1);
-                    resolve();
+                    if (!enter) resolve();
                 }, { once: true });
-                rl.question(query ?? '', { signal }, _answer => {
-                    if (query != undefined) {
-                        readline.moveCursor(process.stdout, 0, -1);
-                        readline.clearLine(process.stdout, 1);
-                    }
+                rl.question(question ?? '', { signal }, async _answer => {
                     enter = true;
                     resolve();
                 });
                 if (time > 0) setTimeout(() => ac.abort(), time);
             });
+            await new Promise(resolve => {
+                readline.moveCursor(process.stdout, 0, -1, () => {
+                    readline.clearLine(process.stdout, 1, () => {
+                        resolve();
+                    });
+                });
+            });
         } catch (error) {
         } finally {
-            rl.close();
-            process.stdin.setRawMode(false);
-            if (query != undefined && !enter) console.log();
+            process.stdin.pause();
+            if (enter === true && question != undefined) {
+                console.log();
+            }
         }
     }
 }
