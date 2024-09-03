@@ -65,6 +65,7 @@ const step = (name, code, info) => {
 let playing = false;
 
 const play = argv => {
+    if (process.env.X) console.log('X');
     if (playing) return;
     playing = true;
     if (argv == undefined) argv = require('./line.js');
@@ -91,7 +92,7 @@ const run = async argv => {
         const relative = path.relative(process.cwd(), argv.file);
         console.log(`${ansi.yellowBright('FILE')} ${ansi.greenBright(relative)}`);
     }
-    if (!hideStartTime) {
+    if (!hideStartTime && argv.operation !== 'list') {
         console.log();
         console.log(`${ansi.magentaBright('TIME')} ${ansi.whiteBright(utils.getTimeString(new Date()))}`);
     }
@@ -178,7 +179,12 @@ const run = async argv => {
                 if (Array.isArray(name)) name = name.length == 0 ? '' : name[0] != undefined ? name[0] : '';
 
                 console.log(`${ansi.redBright('STEP')} ${ansi.bgRed(' ' + ansi.whiteBright(1 + index) + ' ')}${name ? ' ' + ansi.greenBright(name) : ''}`);
-                console.log();
+                if (argv.operation !== 'list') console.log();
+
+                if (argv.operation === 'list') {
+                    index++;
+                    continue;
+                }
 
                 start = utils.getTimeString();
                 entry = {
@@ -239,6 +245,7 @@ const run = async argv => {
                 parameters = state.test.parameters;
                 base = state.test.base;
             }
+            if (argv.operation !== 'list') console.log();
         }
         catch (error) {
 
@@ -274,8 +281,8 @@ const run = async argv => {
                     console.log();
                 }
             }
-
         }
+        if (argv.operation === 'list') console.log();
     }
     if (fail) {
         result.fail = true;

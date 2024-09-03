@@ -65,6 +65,12 @@ If all steps succeeds return code will be ``0`` (success).
 
 If any step fails return code ``$?`` in bash for example will be ``1``.
 
+```
+npx quest-runner list
+```
+
+List steps to take in order they are specified in scenario script.
+
 ## Command line usage ##
 
 Using ``npx quest-runner`` you can use several options.

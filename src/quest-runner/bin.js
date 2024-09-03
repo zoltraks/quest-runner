@@ -18,75 +18,35 @@ async function main() {
     const rest = argv._;
     try {
         let command = (rest[0] ?? '').toLowerCase();
-        let name;
+        let name = process.argv[3];
         switch (command.toLowerCase()) {
             case '':
                 command = 'run';
-                break;
             case 'run':
-                name = process.argv[3];
+            case 'list':
                 break;
             default:
                 throw Error(`Unknown command ${command}`);
         }
-        if (command === 'run') {
-            let file;
-            if (name != undefined) {
-                for (const e of [name, name + '.quest.js']) {
-                    try {
-                        await fs.access(e);
-                        file = e;
-                        break;
-                    }
-                    catch { }
-                }
-            }
-            if (file == undefined) {
-                const path = require('path');
-                for (const sub of ['', 'quest', 'test', '../quest', '../test']) {
-                    const dir = 0 < sub.length ? path.join(process.cwd(), sub) : process.cwd();
-                    if (!isDirectory(dir)) continue;
-                    const all = await fs.readdir(dir);
-                    let files = all.filter(path => {
-                        if (name != undefined && !path.startsWith(name)) return false;
-                        return path.endsWith('.quest.js');
-                    });
-                    if (files.length > 0) {
-                        files.sort();
-                        file = path.join(dir, files[0]);
-                    }
-                    if (file != undefined) break;
-                }
-            }
-            if (file == undefined) {
-                console.error('No script found. Go and create file that name ends with ".quest.js".');
-                return;
-            }
-            let exists = false;
-            for (const suffix of ['', '.quest.js']) {
-                try {
-                    await fs.access(file + suffix);
-                    file += suffix;
-                    exists = true;
-                    break;
-                }
-                catch { }
-            };
-            if (!exists) {
-                console.error(`Script not found ${file}`);
-                return;
-            }
+        const file = await locateScriptFile(name);
+        if (!fileExists(file)) return;
+        if (command == undefined) {
+        } else if (command === 'run' || command === 'list') {
             argv.file = file;
             const code = '' + await fs.readFile(file);
             const { task, step, play, mode } = require('./index.js');
             if ((argv.task || []).length > 0) mode.task = argv.task;
             if ((argv.skip || []).length > 0) mode.skip = argv.skip;
+            if (command === 'list') argv.operation = 'list';
             eval(code);
             const result = await play(argv ?? {});
             if (result != undefined) {
                 result.draw();
                 result.print();
             }
+        } else if (command === 'list') {
+            argv.file = file;
+            process.env.MODE = 'list';
         }
     }
     catch (error) {
@@ -116,6 +76,57 @@ async function fileExists(file) {
     } catch (err) {
         return false;
     }
+}
+
+async function locateScriptFile(name) {
+    const fs = require('fs').promises;
+    let file;
+    if (name != undefined) {
+        for (const e of [name, name + '.quest.js']) {
+            try {
+                await fs.access(e);
+                file = e;
+                break;
+            }
+            catch { }
+        }
+    }
+    if (file == undefined) {
+        const path = require('path');
+        for (const sub of ['', 'quest', 'test', '../quest', '../test']) {
+            const dir = 0 < sub.length ? path.join(process.cwd(), sub) : process.cwd();
+            if (!isDirectory(dir)) continue;
+            const all = await fs.readdir(dir);
+            let files = all.filter(path => {
+                if (name != undefined && !path.startsWith(name)) return false;
+                return path.endsWith('.quest.js');
+            });
+            if (files.length > 0) {
+                files.sort();
+                file = path.join(dir, files[0]);
+            }
+            if (file != undefined) break;
+        }
+    }
+    if (file == undefined) {
+        console.error('No script found. Go and create file that name ends with ".quest.js".');
+        return;
+    }
+    let exists = false;
+    for (const suffix of ['', '.quest.js']) {
+        try {
+            await fs.access(file + suffix);
+            file += suffix;
+            exists = true;
+            break;
+        }
+        catch { }
+    };
+    if (!exists) {
+        console.error(`Script not found ${file}`);
+        return;
+    }
+    return file;
 }
 
 main();
