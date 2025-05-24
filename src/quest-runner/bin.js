@@ -109,7 +109,7 @@ async function locateScriptFile(name) {
         }
     }
     if (file == undefined) {
-        console.error('No script found. Go and create file that name ends with ".quest.js".');
+        console.error('No script found. \nGo and create file that name ends with ".quest.js".');
         return;
     }
     let exists = false;
