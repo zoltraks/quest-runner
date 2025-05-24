@@ -29,7 +29,8 @@ async function main() {
                 throw Error(`Unknown command ${command}`);
         }
         const file = await locateScriptFile(name);
-        if (!fileExists(file)) return;
+        const exists = await fileExists(file);
+        if (!exists) return;
         if (command == undefined) {
         } else if (command === 'run' || command === 'list') {
             argv.file = file;
