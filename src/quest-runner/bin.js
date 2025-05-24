@@ -29,7 +29,8 @@ async function main() {
                 throw Error(`Unknown command ${command}`);
         }
         const file = await locateScriptFile(name);
-        if (!fileExists(file)) return;
+        const exists = await fileExists(file);
+        if (!exists) return;
         if (command == undefined) {
         } else if (command === 'run' || command === 'list') {
             argv.file = file;
@@ -109,7 +110,7 @@ async function locateScriptFile(name) {
         }
     }
     if (file == undefined) {
-        console.error('No script found. Go and create file that name ends with ".quest.js".');
+        console.error('No script found. \nGo and create file that name ends with ".quest.js".');
         return;
     }
     let exists = false;
