@@ -55,7 +55,7 @@ class Result {
 
             let operation = step.info?.type;
             if (!operation) operation = '';
-            operation = operation.toLowerCase();
+            else operation = operation.toLowerCase();
             switch (operation) {
                 case '<>':
                 case 'condition':
