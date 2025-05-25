@@ -37,7 +37,7 @@ async function main() {
             eval(code);
             const result = await play(argv ?? {});
             if (result != undefined) {
-                result.draw();
+                if (argv.draw) result.draw();
                 result.print();
             }
         } else if (command === 'list') {
