@@ -21,8 +21,8 @@ async function main() {
         let name = process.argv[3];
         switch (command.toLowerCase()) {
             case '':
-                command = '';
-            case 'play':
+                command = 'run';
+            case 'run':
             case 'list':
                 break;
             default:
@@ -32,7 +32,7 @@ async function main() {
         const exists = await fileExists(file);
         if (!exists) return;
         if (command == undefined) {
-        } else if (command === 'play' || command === 'list') {
+        } else if (command === 'run' || command === 'list') {
             argv.file = file;
             const code = '' + await fs.readFile(file);
             const { task, step, play, mode } = require('./index.js');
