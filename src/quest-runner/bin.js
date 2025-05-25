@@ -9,20 +9,15 @@ async function main() {
         process.exit(0);
     }
 
-    if (argv.help) {
-        require('yargs/yargs').showHelp();
-        process.exit(0);
-    }
-
     const fs = require('fs').promises;
     const rest = argv._;
     try {
         let command = (rest[0] ?? '').toLowerCase();
-        let name = process.argv[3];
+        let name = rest[1];
         switch (command.toLowerCase()) {
             case '':
-                command = 'run';
-            case 'run':
+                command = 'help';
+            case 'play':
             case 'list':
                 break;
             default:
@@ -32,7 +27,7 @@ async function main() {
         const exists = await fileExists(file);
         if (!exists) return;
         if (command == undefined) {
-        } else if (command === 'run' || command === 'list') {
+        } else if (command === 'play' || command === 'list') {
             argv.file = file;
             const code = '' + await fs.readFile(file);
             const { task, step, play, mode } = require('./index.js');
@@ -131,4 +126,3 @@ async function locateScriptFile(name) {
 }
 
 main();
-
