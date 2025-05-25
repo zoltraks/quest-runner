@@ -65,7 +65,6 @@ const step = (name, code, info) => {
 let playing = false;
 
 const play = argv => {
-    if (process.env.X) console.log('X');
     if (playing) return;
     playing = true;
     if (argv == undefined) argv = require('./line.js');

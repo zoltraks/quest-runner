@@ -24,6 +24,8 @@ const argv = yargs(hideBin(process.argv))
     .usage('Usage: npx quest-runner <command> [options]')
     .epilog('If no task is specified, all tasks will be run.')
     .scriptName('')
-    .help()
+    .showHelpOnFail(true)
+    .demandCommand(1, '')
+    .help(true)
     .parse();
 module.exports = argv;
