@@ -909,6 +909,6 @@ Step name size limit. Default is 40.
 
 ## License ##
 
-Copyright © 2024-2026, [Filip Golewski](https://github.com/zoltraks).
+Copyright © 2024-2026 [Filip Golewski](https://github.com/zoltraks).
 
 Released under the [MIT License](LICENSE).

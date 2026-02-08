@@ -17,6 +17,6 @@ Go to [project](https://github.com/zoltraks/quest-runner) site.
 
 ### License ###
 
-Copyright © 2024, [Filip Golewski](https://github.com/zoltraks).
+Copyright © 2024-2026 [Filip Golewski](https://github.com/zoltraks)
 
 Released under the [MIT License](LICENSE).
