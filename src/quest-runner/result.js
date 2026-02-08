@@ -57,64 +57,64 @@ class Result {
             if (!operation) operation = '';
             else operation = operation.toLowerCase();
             switch (operation) {
-                case '<>':
-                case 'condition':
-                    prefix = '<<';
-                    suffix = '>>';
-                    color = x => ansi.bgMagenta(ansi.white(x));
-                    break;
-                case '()':
-                    prefix = '((';
-                    suffix = '))';
-                    color = x => ansi.bgYellow(ansi.black(x));
-                    break;
-                case '{}':
-                case 'operation':
-                    prefix = '{}';
-                    suffix = '{}';
-                    color = x => ansi.bgGreen(ansi.black(x));
-                    break;
-                case '::':
-                case 'internal':
-                    prefix = '::';
-                    suffix = '::';
-                    color = x => ansi.bgBlackBright(ansi.white(x));
-                    break;
-                case '!!':
-                    prefix = '!!';
-                    suffix = '!!';
-                    color = x => ansi.bgRed(ansi.white(x));
-                    break;
-                case '..':
-                    prefix = '..';
-                    suffix = '..';
-                    color = x => ansi.bgYellow(ansi.black(x));
-                    break;
-                case 'event':
-                    prefix = '((';
-                    suffix = '))';
-                    color = x => ansi.bgYellow(ansi.black(x));
-                    if (display === '') display = 'EVENT';
-                    break;
-                case 'start':
-                    prefix = '((';
-                    suffix = '))';
-                    color = x => ansi.bgGreen(ansi.black(x));
-                    if (display === '') display = 'START';
-                    break;
-                case 'stop':
-                    prefix = '((';
-                    suffix = '))';
-                    color = x => ansi.bgRed(ansi.black(x));
-                    if (display === '') display = 'STOP';
-                    break;
-                case '[]':
-                case 'block':
-                default:
-                    prefix = '[[';
-                    suffix = ']]';
-                    color = x => ansi.bgBlue(ansi.white(x));
-                    break;
+            case '<>':
+            case 'condition':
+                prefix = '<<';
+                suffix = '>>';
+                color = x => ansi.bgMagenta(ansi.white(x));
+                break;
+            case '()':
+                prefix = '((';
+                suffix = '))';
+                color = x => ansi.bgYellow(ansi.black(x));
+                break;
+            case '{}':
+            case 'operation':
+                prefix = '{}';
+                suffix = '{}';
+                color = x => ansi.bgGreen(ansi.black(x));
+                break;
+            case '::':
+            case 'internal':
+                prefix = '::';
+                suffix = '::';
+                color = x => ansi.bgBlackBright(ansi.white(x));
+                break;
+            case '!!':
+                prefix = '!!';
+                suffix = '!!';
+                color = x => ansi.bgRed(ansi.white(x));
+                break;
+            case '..':
+                prefix = '..';
+                suffix = '..';
+                color = x => ansi.bgYellow(ansi.black(x));
+                break;
+            case 'event':
+                prefix = '((';
+                suffix = '))';
+                color = x => ansi.bgYellow(ansi.black(x));
+                if (display === '') display = 'EVENT';
+                break;
+            case 'start':
+                prefix = '((';
+                suffix = '))';
+                color = x => ansi.bgGreen(ansi.black(x));
+                if (display === '') display = 'START';
+                break;
+            case 'stop':
+                prefix = '((';
+                suffix = '))';
+                color = x => ansi.bgRed(ansi.black(x));
+                if (display === '') display = 'STOP';
+                break;
+            case '[]':
+            case 'block':
+            default:
+                prefix = '[[';
+                suffix = ']]';
+                color = x => ansi.bgBlue(ansi.white(x));
+                break;
             }
 
             if (step.error) {
@@ -174,13 +174,13 @@ class Result {
         if (this.stack.length <= 0) return;
         let task;
         for (const execution of this.stack) {
-            let time = `${('' + execution.time.minutes).padStart(2, '0')}:${('' + execution.time.seconds).padStart(2, '0')}.${('' + execution.time.milliseconds).padStart(3, '0')}`
+            let time = `${('' + execution.time.minutes).padStart(2, '0')}:${('' + execution.time.seconds).padStart(2, '0')}.${('' + execution.time.milliseconds).padStart(3, '0')}`;
             if (time === '00:00.000') time = '         ';
             if (!task || task.name != execution.task.name || task.number != execution.task.number) {
                 task = execution.task;
                 let s = '';
                 s += '---- | --- |';
-                if (includeStart) s += ' ------------ |'
+                if (includeStart) s += ' ------------ |';
                 s += ' --------- |';
                 if (printRuler) console.log(s);
                 let t = '';
@@ -224,7 +224,7 @@ class Result {
                     let start = step.start ?? '';
                     if (start instanceof Date) start = utils.getTimeString(start);
                     if (start.length >= 23) start = start.substring(11, 11 + 12);
-                    s += ` | ${ansi.whiteBright(start.padStart(12, ' '))}`
+                    s += ` | ${ansi.whiteBright(start.padStart(12, ' '))}`;
                 }
                 s += ` | ${ansi.cyanBright(time)} | ${name}`;
                 console.log(s);

@@ -95,7 +95,7 @@ class Test extends Expect {
         const dictionary = this.headers ?? {};
         for (let i = 0; i < arguments.length; i++) {
             const argument = arguments[i];
-            for (let field in argument) {
+            for (const field in argument) {
                 if (!argument.hasOwnProperty(field)) continue;
                 const search = field.toLowerCase();
                 const key = Object.keys(dictionary).find(key => key?.toLowerCase() === search);
@@ -103,7 +103,7 @@ class Test extends Expect {
                 dictionary[field] = argument[field];
             }
         }
-        for (let field in dictionary) {
+        for (const field in dictionary) {
             if (!dictionary.hasOwnProperty(field)) continue;
             if (dictionary[field] == undefined) delete dictionary[field];
         }
@@ -242,12 +242,16 @@ class Test extends Expect {
         return this.timeout;
     }
 
-    acceptSelfSignedCertificate(value = true) {
-        this.options = { ...this.options, rejectUnauthorized: false };
+    acceptSelfSignedCertificate(value) {
+        if (value === false) {
+            this.options = { ...this.options, rejectUnauthorized: true };
+        } else {
+            this.options = { ...this.options, rejectUnauthorized: false };
+        }
     }
 
     createAgent(options) {
-        const allow = ['1', 'ALLOW'].indexOf((process.env.SELF_SIGNED_CERTIFICATE ?? '').toUpperCase()) >= 0;
+        const allow = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
         options = options == undefined ? {} : { ...options };
         if (this.options) options = { ...this.options, ...options };
         if (options.rejectUnauthorized == undefined && allow) options.rejectUnauthorized = false;
@@ -266,7 +270,7 @@ class Test extends Expect {
             case 'https':
                 const https = require('https');
                 agent = new https.Agent(options);
-                break
+                break;
             case 'http':
                 const http = require('http');
                 agent = new http.Agent(options);
@@ -275,11 +279,11 @@ class Test extends Expect {
         return agent;
     }
 
-    async call(method, url, payload, headers, options) {
+    call(method, url, payload, headers, options) {
         const utils = require('./utils.js');
-        let request = {};
-        let response = {};
-        let summary = {};
+        const request = {};
+        const response = {};
+        const summary = {};
         url = '' + (url ?? '');
         if (url === '') throw Error('Empty endpoint address');
         if (utils.getProtocol(url) === '') {
@@ -332,128 +336,40 @@ class Test extends Expect {
         summary.method = method;
         if (payload) summary.request = payload;
 
-        let agent;
         let start;
         let taken;
 
-        try {
-            if (options != undefined && options.agent) {
-                agent = options.agent;
+        if (options?.silent !== true) {
+            let anonymous = true;
+            for (const header in request.headers) {
+                if (header.toLowerCase() === 'authorization') {
+                    anonymous = false;
+                    break;
+                }
+            }
+            if (anonymous) {
+                console.log(`${ansi.greenBright('CALL')} ${ansi.blueBright(method)} ${ansi.yellowBright(url)}`);
             } else {
-                agent = this.createAgent({
-                    protocol,
-                    ...options
-                });
+                console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
             }
-
-            if (options?.silent !== true) {
-                let anonymous = true;
-                for (const header in request.headers) {
-                    if (header.toLowerCase() === 'authorization') {
-                        anonymous = false;
-                        break;
-                    }
-                }
-                if (anonymous) {
-                    console.log(`${ansi.greenBright('CALL')} ${ansi.blueBright(method)} ${ansi.yellowBright(url)}`);
-                } else {
-                    console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
-                }
-                console.log();
-            }
-
-            let result;
-
-            if (options != undefined && options.axios != undefined && !options.axios) {
-                const init = { method: request.method, headers: request.headers };
-                if (agent != undefined) init.agent = agent;
-                if (body != undefined) init.body = body;
-                start = performance.now();
-                result = await fetch(url, init);
-                taken = performance.now() - start;
-                if (result.headers) {
-                    response.headers = {};
-                    result.headers.forEach((value, key) => {
-                        response.headers[key] = value;
-                    });
-                }
-            } else {
-                const timeout = options?.timeout ?? this.timeout;
-                let config = { url, method, headers };
-                if (body != undefined) config.data = body;
-                if (agent != undefined) config.httpsAgent = agent;
-                if (timeout != undefined) config.timeout = timeout;
-                const axios = require('axios');
-                axios.defaults.validateStatus = () => true;
-                start = performance.now();
-                result = await axios(config);
-                taken = performance.now() - start;
-                response.headers = {};
-                for (const header in result.headers) {
-                    response.headers[header] = result.headers[header];
-                }
-            }
-
-            if (result.data != undefined) {
-                response.data = result.data;
-            } else {
-                response.data = await result.text();
-            }
-
-            if (typeof response.data === 'string') {
-                const regex = /^\s*(?:\[.*\]|\{.*\})\s*$/s;
-                if (regex.test(response.data)) {
-                    try {
-                        const o = JSON.parse(response.data);
-                        response.data = o;
-                    } catch (err) {
-                        if (err instanceof SyntaxError) {
-                        } else {
-                            throw err;
-                        }
-                    }
-                }
-            }
-
-            if (taken != undefined && taken > 0) {
-                summary.time = Math.ceil(taken);
-            }
-
-            summary.response = response.data;
-            summary.status = result.status;
-
-            response.status = result.status;
-        } catch (error) {
-            response.error = '';
-            if (error.cause) {
-                response.error = '' + error.cause.message;
-            }
-            if (response.error === '' && Array.isArray(error.errors)) {
-                response.error = error.errors[error.errors.length - 1].message;
-            }
-            if (response.error === '') {
-                response.error = error.message;
-            }
-            let print = response.error;
-            if (print) {
-                print = 'ERROR ' + print;
-                console.error(print);
-                console.log();
-                const debug = utils.stringToBoolean(process.env.DEBUG);
-                if (error.name === 'AggregateError') {
-                } else {
-                    if (debug && error.stack) {
-                        console.error(error.stack);
-                        console.log();
-                    }
-                }
-            }
+            console.log();
         }
 
-        if (response.error != undefined) summary.error = response.error;
+        const client = require('./http.js');
+        const result = client.execute({
+            method,
+            url,
+            headers,
+            body,
+            options: {
+                timeout: options?.timeout ?? this.timeout,
+                rejectUnauthorized: this.options?.rejectUnauthorized
+            }
+        });
 
-        this.response = response;
-        this.summary = summary;
+        this.response = result.response;
+        this.summary = result.summary;
+        Object.assign(response, result.response);
 
         if (response.error != undefined && options?.ignore !== true) {
             throw Error(response.error);
@@ -537,7 +453,7 @@ class Test extends Expect {
                     });
                 });
             });
-        } catch (error) {
+        } catch {
         } finally {
             process.stdin.pause();
             if (enter === true && question != undefined) {

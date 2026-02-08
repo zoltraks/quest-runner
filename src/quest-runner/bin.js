@@ -13,7 +13,7 @@ async function main() {
     const rest = argv._;
     try {
         let command = (rest[0] ?? '').toLowerCase();
-        let name = rest[1];
+        const name = rest[1];
         switch (command.toLowerCase()) {
             case '':
                 command = 'help';
@@ -28,8 +28,10 @@ async function main() {
         if (!exists) return;
         if (command == undefined) {
         } else if (command === 'play' || command === 'list') {
+            if (command === 'play') ensureDependencies();
             argv.file = file;
             const code = '' + await fs.readFile(file);
+            // eslint-disable-next-line no-unused-vars
             const { task, step, play, mode } = require('./index.js');
             if ((argv.task || []).length > 0) mode.task = argv.task;
             if ((argv.skip || []).length > 0) mode.skip = argv.skip;
@@ -69,7 +71,7 @@ async function fileExists(file) {
     try {
         await fs.access(file, fs.constants.F_OK);
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }
@@ -93,7 +95,7 @@ async function locateScriptFile(name) {
             const dir = 0 < sub.length ? path.join(process.cwd(), sub) : process.cwd();
             if (!isDirectory(dir)) continue;
             const all = await fs.readdir(dir);
-            let files = all.filter(path => {
+            const files = all.filter(path => {
                 if (name != undefined && !path.startsWith(name)) return false;
                 return path.endsWith('.quest.js');
             });
@@ -123,6 +125,17 @@ async function locateScriptFile(name) {
         return;
     }
     return file;
+}
+
+function ensureDependencies() {
+    const { execSync } = require('child_process');
+    try {
+        execSync('curl --version', { stdio: 'ignore', windowsHide: true });
+    } catch (error) {
+        console.error('Error: Required system dependency "curl" is missing.');
+        console.error('Please install curl to use this tool.');
+        process.exit(1);
+    }
 }
 
 main();
