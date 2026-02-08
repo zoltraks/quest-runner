@@ -95,7 +95,7 @@ class Test extends Expect {
         const dictionary = this.headers ?? {};
         for (let i = 0; i < arguments.length; i++) {
             const argument = arguments[i];
-            for (let field in argument) {
+            for (const field in argument) {
                 if (!argument.hasOwnProperty(field)) continue;
                 const search = field.toLowerCase();
                 const key = Object.keys(dictionary).find(key => key?.toLowerCase() === search);
@@ -103,7 +103,7 @@ class Test extends Expect {
                 dictionary[field] = argument[field];
             }
         }
-        for (let field in dictionary) {
+        for (const field in dictionary) {
             if (!dictionary.hasOwnProperty(field)) continue;
             if (dictionary[field] == undefined) delete dictionary[field];
         }
@@ -263,23 +263,23 @@ class Test extends Expect {
         if (options.timeout == undefined && this.timeout != undefined) options.timeout = this.timeout;
         let agent;
         switch (protocol) {
-            case 'https':
-                const https = require('https');
-                agent = new https.Agent(options);
-                break
-            case 'http':
-                const http = require('http');
-                agent = new http.Agent(options);
-                break;
+        case 'https':
+            const https = require('https');
+            agent = new https.Agent(options);
+            break;
+        case 'http':
+            const http = require('http');
+            agent = new http.Agent(options);
+            break;
         }
         return agent;
     }
 
     async call(method, url, payload, headers, options) {
         const utils = require('./utils.js');
-        let request = {};
-        let response = {};
-        let summary = {};
+        const request = {};
+        const response = {};
+        const summary = {};
         url = '' + (url ?? '');
         if (url === '') throw Error('Empty endpoint address');
         if (utils.getProtocol(url) === '') {
@@ -379,7 +379,7 @@ class Test extends Expect {
                 }
             } else {
                 const timeout = options?.timeout ?? this.timeout;
-                let config = { url, method, headers };
+                const config = { url, method, headers };
                 if (body != undefined) config.data = body;
                 if (agent != undefined) config.httpsAgent = agent;
                 if (timeout != undefined) config.timeout = timeout;

@@ -81,7 +81,7 @@ const play = argv => {
             }
         }, 0);
     });
-}
+};
 
 const run = async argv => {
     const path = require('path');
@@ -259,7 +259,7 @@ const run = async argv => {
                 }
             };
 
-            let message = (typeof error === 'string' ? error : error.message).trim();
+            const message = (typeof error === 'string' ? error : error.message).trim();
             if (message.length > 0) {
                 if (result.error == undefined) result.error = message;
                 else if (result.errors == undefined) result.errors = [result.error, message];

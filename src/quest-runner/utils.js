@@ -33,32 +33,32 @@ class Utils {
         const milli = match.groups.milli || 0;
         const result = new Date(year, month, day, hour, minute, second, milli);
         return result;
-    }
+    };
 
     getTimeDifference = (one, two) => {
         if (!two) two = new Date();
         if (typeof one === 'string') one = this.parseTime(one);
         if (typeof two === 'string') two = this.parseTime(two);
-        let past = one > two;
+        const past = one > two;
         if (past) [one, two] = [two, one];
         let difference = two.getTime() - one.getTime();
         const total = { difference };
-        let days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         total.days = Math.floor(total.difference / (1000 * 60 * 60 * 24));
         difference -= days * (1000 * 60 * 60 * 24);
-        let hours = Math.floor(difference / (1000 * 60 * 60));
+        const hours = Math.floor(difference / (1000 * 60 * 60));
         total.hours = Math.floor(total.difference / (1000 * 60 * 60));
         difference -= hours * (1000 * 60 * 60);
-        let minutes = Math.floor(difference / (1000 * 60));
+        const minutes = Math.floor(difference / (1000 * 60));
         total.minutes = Math.floor(total.difference / (1000 * 60));
         difference -= minutes * (1000 * 60);
-        let seconds = Math.floor(difference / 1000);
+        const seconds = Math.floor(difference / 1000);
         total.seconds = Math.floor(total.difference / 1000);
         difference -= seconds * 1000;
-        let milliseconds = difference;
+        const milliseconds = difference;
         total.milliseconds = total.difference;
         delete total.difference;
-        let result = {
+        const result = {
             days: days,
             hours: hours,
             minutes: minutes,
@@ -68,7 +68,7 @@ class Utils {
             total,
         };
         return result;
-    }
+    };
 
     findIndexCaseInsensitive = (array, field, value) => array.findIndex(object => object[field]?.toLowerCase() === value.toLowerCase());
 
@@ -93,14 +93,14 @@ class Utils {
         const match = url.match(regex);
         if (!match) return '';
         return match[1];
-    }
+    };
 
     stringToBoolean = value => {
         if (value == undefined) return false;
         if (value === false || value === 0 || value === '' || value === '0') return false;
         if (typeof value === 'string' && 0 <= ['FALSE', 'NULL', ''].indexOf(value.trim().toUpperCase())) return false;
         return true;
-    }
+    };
 
     stringLimit = (text, length = 100, suffix = '...') => {
         if (text == undefined) return text;
@@ -113,7 +113,7 @@ class Utils {
             text = text.substring(0, length - suffix.length) + suffix;
         }
         return text;
-    }
+    };
 
     squeeze = (array, limit = 10, separator = '...') => {
         if (array == undefined) return array;

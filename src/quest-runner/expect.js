@@ -19,7 +19,7 @@ class Expect extends Assert {
             }
         }
         if (!success) {
-            if (!message) message = 'Expect any failed'
+            if (!message) message = 'Expect any failed';
             this.assert(message);
         }
     };
@@ -41,7 +41,7 @@ class Expect extends Assert {
             }
         }
         if (fail) {
-            if (!message) message = 'Expect all failed'
+            if (!message) message = 'Expect all failed';
             this.assert(message);
         }
     };

@@ -13,15 +13,15 @@ async function main() {
     const rest = argv._;
     try {
         let command = (rest[0] ?? '').toLowerCase();
-        let name = rest[1];
+        const name = rest[1];
         switch (command.toLowerCase()) {
-            case '':
-                command = 'help';
-            case 'play':
-            case 'list':
-                break;
-            default:
-                throw Error(`Unknown command ${command}`);
+        case '':
+            command = 'help';
+        case 'play':
+        case 'list':
+            break;
+        default:
+            throw Error(`Unknown command ${command}`);
         }
         const file = await locateScriptFile(name);
         const exists = await fileExists(file);
@@ -93,7 +93,7 @@ async function locateScriptFile(name) {
             const dir = 0 < sub.length ? path.join(process.cwd(), sub) : process.cwd();
             if (!isDirectory(dir)) continue;
             const all = await fs.readdir(dir);
-            let files = all.filter(path => {
+            const files = all.filter(path => {
                 if (name != undefined && !path.startsWith(name)) return false;
                 return path.endsWith('.quest.js');
             });

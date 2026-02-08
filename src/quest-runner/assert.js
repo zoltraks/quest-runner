@@ -29,7 +29,7 @@ class Assert {
             return;
         }
         if (!message) {
-            message = 'Assertion True failed'
+            message = 'Assertion True failed';
         }
         this.assert(message);
     }
@@ -53,7 +53,7 @@ class Assert {
             return;
         }
         if (!message) {
-            message = 'Assertion NotNull failed'
+            message = 'Assertion NotNull failed';
         }
         this.assert(message);
     }
@@ -106,7 +106,7 @@ class Assert {
             }
         }
         if (!message) {
-            message = 'Assertion NotEmpty failed'
+            message = 'Assertion NotEmpty failed';
         }
         this.assert(message);
     }
