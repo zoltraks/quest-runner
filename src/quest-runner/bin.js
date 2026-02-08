@@ -15,13 +15,13 @@ async function main() {
         let command = (rest[0] ?? '').toLowerCase();
         const name = rest[1];
         switch (command.toLowerCase()) {
-        case '':
-            command = 'help';
-        case 'play':
-        case 'list':
-            break;
-        default:
-            throw Error(`Unknown command ${command}`);
+            case '':
+                command = 'help';
+            case 'play':
+            case 'list':
+                break;
+            default:
+                throw Error(`Unknown command ${command}`);
         }
         const file = await locateScriptFile(name);
         const exists = await fileExists(file);
@@ -30,6 +30,7 @@ async function main() {
         } else if (command === 'play' || command === 'list') {
             argv.file = file;
             const code = '' + await fs.readFile(file);
+            // eslint-disable-next-line no-unused-vars
             const { task, step, play, mode } = require('./index.js');
             if ((argv.task || []).length > 0) mode.task = argv.task;
             if ((argv.skip || []).length > 0) mode.skip = argv.skip;
@@ -69,7 +70,7 @@ async function fileExists(file) {
     try {
         await fs.access(file, fs.constants.F_OK);
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }

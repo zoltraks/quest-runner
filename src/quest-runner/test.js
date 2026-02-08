@@ -242,8 +242,12 @@ class Test extends Expect {
         return this.timeout;
     }
 
-    acceptSelfSignedCertificate(value = true) {
-        this.options = { ...this.options, rejectUnauthorized: false };
+    acceptSelfSignedCertificate(value) {
+        if (value === false) {
+            this.options = { ...this.options, rejectUnauthorized: true };
+        } else {
+            this.options = { ...this.options, rejectUnauthorized: false };
+        }
     }
 
     createAgent(options) {
@@ -544,7 +548,7 @@ class Test extends Expect {
                     });
                 });
             });
-        } catch (error) {
+        } catch {
         } finally {
             process.stdin.pause();
             if (enter === true && question != undefined) {
