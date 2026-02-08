@@ -251,7 +251,7 @@ class Test extends Expect {
     }
 
     createAgent(options) {
-        const allow = ['1', 'ALLOW'].indexOf((process.env.SELF_SIGNED_CERTIFICATE ?? '').toUpperCase()) >= 0;
+        const allow = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
         options = options == undefined ? {} : { ...options };
         if (this.options) options = { ...this.options, ...options };
         if (options.rejectUnauthorized == undefined && allow) options.rejectUnauthorized = false;
@@ -267,14 +267,14 @@ class Test extends Expect {
         if (options.timeout == undefined && this.timeout != undefined) options.timeout = this.timeout;
         let agent;
         switch (protocol) {
-        case 'https':
-            const https = require('https');
-            agent = new https.Agent(options);
-            break;
-        case 'http':
-            const http = require('http');
-            agent = new http.Agent(options);
-            break;
+            case 'https':
+                const https = require('https');
+                agent = new https.Agent(options);
+                break;
+            case 'http':
+                const http = require('http');
+                agent = new http.Agent(options);
+                break;
         }
         return agent;
     }
@@ -339,132 +339,37 @@ class Test extends Expect {
         let start;
         let taken;
 
-        try {
-            if (options?.silent !== true) {
-                let anonymous = true;
-                for (const header in request.headers) {
-                    if (header.toLowerCase() === 'authorization') {
-                        anonymous = false;
-                        break;
-                    }
-                }
-                if (anonymous) {
-                    console.log(`${ansi.greenBright('CALL')} ${ansi.blueBright(method)} ${ansi.yellowBright(url)}`);
-                } else {
-                    console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
-                }
-                console.log();
-            }
-
-            // Build curl command
-            const { execSync } = require('child_process');
-            const args = ['curl', '-s', '-i', '-X', method];
-
-            // Add timeout
-            const timeout = options?.timeout ?? this.timeout;
-            if (timeout != undefined) {
-                args.push('--max-time', Math.ceil(timeout / 1000).toString());
-            }
-
-            // Add headers
-            for (const header in headers) {
-                if (headers[header] != undefined) {
-                    args.push('-H', `${header}: ${headers[header]}`);
+        if (options?.silent !== true) {
+            let anonymous = true;
+            for (const header in request.headers) {
+                if (header.toLowerCase() === 'authorization') {
+                    anonymous = false;
+                    break;
                 }
             }
-
-            // Add body
-            if (body != undefined) {
-                args.push('-d', body);
+            if (anonymous) {
+                console.log(`${ansi.greenBright('CALL')} ${ansi.blueBright(method)} ${ansi.yellowBright(url)}`);
+            } else {
+                console.log(`${ansi.magentaBright('CALL')} ${ansi.cyanBright(method)} ${ansi.yellowBright(url)}`);
             }
-
-            // Allow self-signed certificates
-            const allow = ['1', 'ALLOW'].indexOf((process.env.SELF_SIGNED_CERTIFICATE ?? '').toUpperCase()) >= 0;
-            if (allow || this.options?.rejectUnauthorized === false) {
-                args.push('-k');
-            }
-
-            args.push(url);
-
-            // Execute curl synchronously
-            start = performance.now();
-            const result = execSync(args.join(' '), {
-                encoding: 'utf8',
-                maxBuffer: 50 * 1024 * 1024,
-                windowsHide: true,
-                shell: true
-            });
-            taken = performance.now() - start;
-
-            // Parse response (headers and body separated by blank line)
-            const parts = result.split(/\r?\n\r?\n/);
-            const headerLines = parts[0].split(/\r?\n/);
-            const bodyText = parts.slice(1).join('\n\n');
-
-            // Parse status from first line
-            const statusMatch = headerLines[0].match(/HTTP\/[\d.]+ (\d+)/);
-            response.status = statusMatch ? parseInt(statusMatch[1], 10) : 0;
-
-            // Parse headers
-            response.headers = {};
-            for (let i = 1; i < headerLines.length; i++) {
-                const colonIndex = headerLines[i].indexOf(':');
-                if (colonIndex > 0) {
-                    const key = headerLines[i].substring(0, colonIndex).trim();
-                    const value = headerLines[i].substring(colonIndex + 1).trim();
-                    response.headers[key.toLowerCase()] = value;
-                }
-            }
-
-            // Parse body
-            response.data = bodyText;
-
-            // Parse JSON response if applicable
-            if (typeof response.data === 'string') {
-                const regex = /^\s*(?:\[.*\]|\{.*\})\s*$/s;
-                if (regex.test(response.data)) {
-                    try {
-                        const o = JSON.parse(response.data);
-                        response.data = o;
-                    } catch (err) {
-                        if (!(err instanceof SyntaxError)) {
-                            throw err;
-                        }
-                    }
-                }
-            }
-
-            if (taken != undefined && taken > 0) {
-                summary.time = Math.ceil(taken);
-            }
-
-            summary.response = response.data;
-            summary.status = response.status;
-        } catch (error) {
-            response.error = '';
-            if (error.message) {
-                response.error = error.message;
-            }
-            if (error.stderr) {
-                response.error = error.stderr.toString().trim() || response.error;
-            }
-            let print = response.error;
-            if (print) {
-                print = 'ERROR ' + print;
-                console.error(print);
-                console.log();
-                const debug = utils.stringToBoolean(process.env.DEBUG);
-                if (debug && error.stack) {
-                    console.error(error.stack);
-                    console.log();
-                }
-            }
+            console.log();
         }
 
-        if (response.error != undefined) summary.error = response.error;
+        const client = require('./http.js');
+        const result = client.execute({
+            method,
+            url,
+            headers,
+            body,
+            options: {
+                timeout: options?.timeout ?? this.timeout,
+                rejectUnauthorized: this.options?.rejectUnauthorized
+            }
+        });
 
-        this.response = response;
-        this.summary = summary;
+        this.response = result.response;
+        this.summary = result.summary;
+        Object.assign(response, result.response);
 
         if (response.error != undefined && options?.ignore !== true) {
             throw Error(response.error);

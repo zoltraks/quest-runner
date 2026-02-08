@@ -28,6 +28,7 @@ async function main() {
         if (!exists) return;
         if (command == undefined) {
         } else if (command === 'play' || command === 'list') {
+            if (command === 'play') ensureDependencies();
             argv.file = file;
             const code = '' + await fs.readFile(file);
             // eslint-disable-next-line no-unused-vars
@@ -124,6 +125,17 @@ async function locateScriptFile(name) {
         return;
     }
     return file;
+}
+
+function ensureDependencies() {
+    const { execSync } = require('child_process');
+    try {
+        execSync('curl --version', { stdio: 'ignore', windowsHide: true });
+    } catch (error) {
+        console.error('Error: Required system dependency "curl" is missing.');
+        console.error('Please install curl to use this tool.');
+        process.exit(1);
+    }
 }
 
 main();

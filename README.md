@@ -329,6 +329,12 @@ task(() => {
 
 Using self signed certificates is not good practice.
 
+However, you can globally allow insecure connections by setting `INSECURE` environment variable to `1`, `TRUE` or `YES`.
+
+```sh
+export INSECURE=1
+```
+
 Result of last ``x.call()`` can be taken using ``x.getResponse()``.
 
 Result of ``x.call()`` is an object containing request ``url`` and ``method`` as well as ``payload`` and ``headers`` in ``request`` and response ``data``, ``headers`` and HTTP ``status`` code. If any error occurs, message will be left in ``error`` field.
