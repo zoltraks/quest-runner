@@ -267,14 +267,14 @@ class Test extends Expect {
         if (options.timeout == undefined && this.timeout != undefined) options.timeout = this.timeout;
         let agent;
         switch (protocol) {
-            case 'https':
-                const https = require('https');
-                agent = new https.Agent(options);
-                break;
-            case 'http':
-                const http = require('http');
-                agent = new http.Agent(options);
-                break;
+        case 'https':
+            const https = require('https');
+            agent = new https.Agent(options);
+            break;
+        case 'http':
+            const http = require('http');
+            agent = new http.Agent(options);
+            break;
         }
         return agent;
     }

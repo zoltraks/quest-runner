@@ -15,13 +15,13 @@ async function main() {
         let command = (rest[0] ?? '').toLowerCase();
         const name = rest[1];
         switch (command.toLowerCase()) {
-            case '':
-                command = 'help';
-            case 'play':
-            case 'list':
-                break;
-            default:
-                throw Error(`Unknown command ${command}`);
+        case '':
+            command = 'help';
+        case 'play':
+        case 'list':
+            break;
+        default:
+            throw Error(`Unknown command ${command}`);
         }
         const file = await locateScriptFile(name);
         const exists = await fileExists(file);
