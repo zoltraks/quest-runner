@@ -21,7 +21,7 @@ Install with [npm](https://www.npmjs.com/) in current directory:
 $ npm install quest-runner
 ``` 
 
-This tool depends on several [npm](https://www.npmjs.com/) packages like ``axios``, ``ping``, ``yargs``, ``ansi-colors``, ``color-support``. 
+This tool depends on several [npm](https://www.npmjs.com/) packages like ``yargs``, ``ansi-colors``, ``color-support``. 
 
 Required packages will be also installed.
 
@@ -79,12 +79,13 @@ To see all options execute ``npx quest-runner --help``.
 
 ```
 Options:
-      --skip     Skip task (may be used more than once)                  [array]
-      --task     Run specified task (may be used more than once)         [array]
+      --skip     Specify task to skip                                    [array]
+      --task     Specify task to execute                                 [array]
+      --silent   Silent mode                                           [boolean]
+      --draw     Draw execution diagram                                [boolean]
   -V, --version  Show version number                                   [boolean]
   -?, --help     Show help                                             [boolean]
   -v, --verbose  Verbose mode                                          [boolean]
-  -s, --silent   Silent mode                                           [boolean]
 ```
 
 To run specified task (one or more) and skip all other without ``always`` flag use ``--task`` parameter.
@@ -130,8 +131,8 @@ Let's create network ping example in ``ping.quest.js``.
 ```js
 task(' ', () => {
 
-    step('Check Google', async x => {
-        await x.expectAlive('google.com', { print: true });
+    step('Check Google', x => {
+        x.expectAlive('google.com', { print: true });
     })
 
 })
@@ -144,8 +145,8 @@ In case ping fails task will also fail and extra information would be printed.
 ```js
 task(' ', () => {
 
-    step('Alive error', async x => {
-        await x.expectAlive('host-at.non-existing-domain', { print: true });
+    step('Alive error', x => {
+        x.expectAlive('host-at.non-existing-domain', { print: true });
     })
 
 })
@@ -216,15 +217,15 @@ Headers specified as parameter for ``x.call()`` will override headers specified 
 ```js
 task(() => {
     
-    step(async x => {
+    step(x => {
         const headers = {
             'X-Random': x.getRandomInteger(100, 999),
         };
         const options = {
             timeout: 3000,
         };
-        await x.call(
-            'GET',                      // HTTP method to use (GET, PUT, POST, DELETE, etc.)
+        x.call(
+            'GET',                      // HTTP method to use (GET, PUT, POST, DELETE)
             'https://www.google.com/',  // Endpoint URL address
             false,                      // Request body (payload)
             headers,                    // Request headers
@@ -262,7 +263,7 @@ In this case test will finish with result output of ``x.getHeader()``.
 
 List of defined headers can be obtained by ``x.getHeaders()``.
 
-Simple checks are achieved with ``x.assert*()`` functions which are all basic operations, so they work also both asynchronous and not asynchronous code.
+Simple checks are achieved with ``x.assert*()`` functions which are basic operations that work with any code.
 
 ```js
 task(() => {
@@ -277,26 +278,20 @@ task(() => {
 
 During step execution it is possible to specify which step should be taken next, overriding sequential step execution in order they are defined.
 
-For other functions like ``x.call()`` or ``x.expect*()`` you **MUST** use ``async`` function delegates.
-
-Asynchronous code is always valid with synchronous operations.
+All API functions including ``x.call()`` and ``x.expect*()`` are synchronous. No ``async`` or ``await`` needed.
 
 ```js
 task(() => {
 
     step(async x => {
-        await x.assertTrue(undefined == null);    // must be false
-        await x.assertFalse(undefined === null);  // must be false
-        await x.assertNull(undefined);            // undefined is null
-        await x.result('Even when await is not needed it will still work');
+        x.assertTrue(undefined == null);    // must be false
+        x.assertFalse(undefined === null);  // must be false
+        x.assertNull(undefined);            // undefined is null
+        x.result('Even when await is not needed it will still work');
     });
 
 });
 ```
-
-There is no easy way to mix synchronous and asynchronous code in the opposite direction.
-
-It's up to you if you want to stick with ``async`` and ``await`` or use it when needed for ``x.call()``, ``x.expectAlive()``, etc.
 
 Making HTTP calls is simplified to one generic function ``x.call()``.
 
@@ -310,12 +305,10 @@ This function takes five arguments which are in order:
 
 First two parameters ``method`` and ``url`` are required.
 
-By default [axios](https://axios-http.com/) library is used for making HTTP connections.
-
-You may want to use [Fetch API](https://www.w3schools.com/js/js_api_fetch.asp) instead although it's not really recommended.
+HTTP requests are made using ``curl`` via synchronous execution.
 
 ```js
-task(() => step(async x => x.result(await x.call('GET', 'https://www.google.com', null, null, { axios: false }))));
+task(() => step(x => x.result(x.call('GET', 'https://www.google.com'))));
 ```
 
 Additional options may be passed like ``timeout`` or ``keepAlive``.
@@ -325,8 +318,8 @@ To bypass self signed certificate you may set ``rejectUnauthorized`` to ``false`
 ```js
 task(() => {
 
-    step(async x => {
-        x.result(await x.call(
+    step(x => {
+        x.result(x.call(
             'GET', 'https://placeholder.alyx.pl:6502',
             null, null, { rejectUnauthorized: false }));
     });
@@ -347,13 +340,13 @@ Or you can use summary object from ``x.getSummary()``.
 ```js
 task(() => {
 
-    step(async x => {
-        await x.call('GET', 'https://jsonplaceholder.typicode.com/posts/1');
+    step(x => {
+        x.call('GET', 'https://jsonplaceholder.typicode.com/posts/1');
         x.result(x.getSummary());
     });
 
-    step(async x => {
-        await x.call('POST', 'https://jsonplaceholder.typicode.com/posts', { key: 'value' });
+    step(x => {
+        x.call('POST', 'https://jsonplaceholder.typicode.com/posts', { key: 'value' });
         x.result(x.getSummary());
     });
 
@@ -399,8 +392,8 @@ you will probably get lot of data as both HTTP request and response contain arra
 ```js
 task(() => {
 
-    step(async x => {
-        await x.call('GET', 'https://jsonplaceholder.typicode.com/posts/1');
+    step(x => {
+        x.call('GET', 'https://jsonplaceholder.typicode.com/posts/1');
         x.result(x.getRequest());
         x.result({ ...x.getResponse(), request: undefined, headers: undefined });
     });
@@ -439,8 +432,8 @@ If you dump object returned by ``x.getResponse()`` you will see all data related
 ```js
 task(() => {
 
-    step(async x => {
-        await x.call('GET', 'https://jsonplaceholder.typicode.com/posts/1');
+    step(x => {
+        x.call('GET', 'https://jsonplaceholder.typicode.com/posts/1');
         x.result(x.getResponse());
     });
 
@@ -496,8 +489,8 @@ You may easily filter them out using simple JavaScript object deconstruction.
 ```js
 task(() => {
 
-    step(async x => {
-        await x.call(
+    step(x => {
+        x.call(
             'POST',
             `https://jsonplaceholder.typicode.com/posts`,
             {
@@ -544,7 +537,7 @@ By default if an error occurs during HTTP request made by ``x.call()`` exception
 ```js
 task(() => {
 
-    step(async x => x.setTimeout(300) || await x.call('GET', 'stupid.local'));
+    step(x => x.setTimeout(300) || x.call('GET', 'stupid.local'));
 
 });
 ```
@@ -553,17 +546,14 @@ task(() => {
 ERROR timeout of 300ms exceeded
 ```
 
-But you can choose to ignore connection errors by setting ``ignore`` options to ``true``.
-Error will still be available in response ``error`` field. 
+But you can choose to ignore connection errors by setting ``ignore`` options to ``true``. Error will still be available in response ``error`` field. 
 
 ```js
 task(() => {
 
-task(() => {
-
-    step(async x => {
+    step(x => {
         x.setTimeout(500);
-        await x.call('GET', 'stupid.local', undefined, undefined, { ignore: true });
+        x.call('GET', 'stupid.local', undefined, undefined, { ignore: true });
         x.assertEmpty(x.getResponse().error);
     });
 
@@ -718,7 +708,7 @@ As mentioned before, parameters are shared between tasks, so we can use them to 
 ```js
 task('Initialize', () => {
 
-    step(async x => {
+    step(x => {
         x.setBase(process.env.BASE_URL ?? 'https://jsonplaceholder.typicode.com/');
     });
 
@@ -726,8 +716,8 @@ task('Initialize', () => {
 
 task('Work', () => {
 
-    step(async x => {
-        await x.call('POST', '/posts');
+    step(x => {
+        x.call('POST', '/posts');
         x.result(x.getSummary());
         x.setParameter('X-Id', x.getResponse().data.id);
     });
@@ -736,9 +726,9 @@ task('Work', () => {
 
 task('Finalize', () => {
 
-    step(async x => {
+    step(x => {
         if (x.getParameter('X-Id')) {
-            await x.call('DELETE', `/posts/${x.getParameter('X-Id')}`);
+            x.call('DELETE', `/posts/${x.getParameter('X-Id')}`);
             x.result(x.getSummary());
         }
     });
@@ -781,8 +771,8 @@ When wrapped around ``x.expectAll()`` it will allow other steps to be checked as
 ```js
 task(() => {
 
-    step(async x => {
-        await x.expectAll([
+    step(x => {
+        x.expectAll([
             x => x.assertTrue(false),
             x => x.assertFalse(true),
         ]);
@@ -793,13 +783,13 @@ task(() => {
 
 ![](media/shot/expect-all.png)
 
-Remember that when using ``x.expect*()`` functions you **MUST** use ``await``.
+All ``x.expect*()`` functions are synchronous.
 
 ```js
 task(() => {
 
-    step(async x => {
-        await x.expectAny([
+    step(x => {
+        x.expectAny([
             x => x.assertTrue(false),
             x => x.assertFalse(true),
         ]);
@@ -810,15 +800,15 @@ task(() => {
 
 ![](media/shot/expect-any.png)
 
-Asynchronous conditions are also valid.
+Mixed conditions with HTTP calls are also supported.
 
 ```js
 
 task(() => {
 
-    step(async x => {
-        await x.expectAny([
-            async x => await x.call('GET', 'google.com'),
+    step(x => {
+        x.expectAny([
+            x => x.call('GET', 'google.com'),
             x => x.assertFalse(true),
         ]);
     });
@@ -913,6 +903,6 @@ Step name size limit. Default is 40.
 
 ## License ##
 
-Copyright © 2024, [Filip Golewski](https://github.com/zoltraks).
+Copyright © 2024-2026, [Filip Golewski](https://github.com/zoltraks).
 
 Released under the [MIT License](LICENSE).

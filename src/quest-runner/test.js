@@ -275,7 +275,7 @@ class Test extends Expect {
         return agent;
     }
 
-    async call(method, url, payload, headers, options) {
+    call(method, url, payload, headers, options) {
         const utils = require('./utils.js');
         const request = {};
         const response = {};
@@ -332,20 +332,10 @@ class Test extends Expect {
         summary.method = method;
         if (payload) summary.request = payload;
 
-        let agent;
         let start;
         let taken;
 
         try {
-            if (options != undefined && options.agent) {
-                agent = options.agent;
-            } else {
-                agent = this.createAgent({
-                    protocol,
-                    ...options
-                });
-            }
-
             if (options?.silent !== true) {
                 let anonymous = true;
                 for (const header in request.headers) {
@@ -362,44 +352,70 @@ class Test extends Expect {
                 console.log();
             }
 
-            let result;
+            // Build curl command
+            const { execSync } = require('child_process');
+            const args = ['curl', '-s', '-i', '-X', method];
 
-            if (options != undefined && options.axios != undefined && !options.axios) {
-                const init = { method: request.method, headers: request.headers };
-                if (agent != undefined) init.agent = agent;
-                if (body != undefined) init.body = body;
-                start = performance.now();
-                result = await fetch(url, init);
-                taken = performance.now() - start;
-                if (result.headers) {
-                    response.headers = {};
-                    result.headers.forEach((value, key) => {
-                        response.headers[key] = value;
-                    });
-                }
-            } else {
-                const timeout = options?.timeout ?? this.timeout;
-                const config = { url, method, headers };
-                if (body != undefined) config.data = body;
-                if (agent != undefined) config.httpsAgent = agent;
-                if (timeout != undefined) config.timeout = timeout;
-                const axios = require('axios');
-                axios.defaults.validateStatus = () => true;
-                start = performance.now();
-                result = await axios(config);
-                taken = performance.now() - start;
-                response.headers = {};
-                for (const header in result.headers) {
-                    response.headers[header] = result.headers[header];
+            // Add timeout
+            const timeout = options?.timeout ?? this.timeout;
+            if (timeout != undefined) {
+                args.push('--max-time', Math.ceil(timeout / 1000).toString());
+            }
+
+            // Add headers
+            for (const header in headers) {
+                if (headers[header] != undefined) {
+                    args.push('-H', `${header}: ${headers[header]}`);
                 }
             }
 
-            if (result.data != undefined) {
-                response.data = result.data;
-            } else {
-                response.data = await result.text();
+            // Add body
+            if (body != undefined) {
+                args.push('-d', body);
             }
 
+            // Allow self-signed certificates
+            const allow = ['1', 'ALLOW'].indexOf((process.env.SELF_SIGNED_CERTIFICATE ?? '').toUpperCase()) >= 0;
+            if (allow || this.options?.rejectUnauthorized === false) {
+                args.push('-k');
+            }
+
+            args.push(url);
+
+            // Execute curl synchronously
+            start = performance.now();
+            const result = execSync(args.join(' '), {
+                encoding: 'utf8',
+                maxBuffer: 50 * 1024 * 1024,
+                windowsHide: true,
+                shell: true
+            });
+            taken = performance.now() - start;
+
+            // Parse response (headers and body separated by blank line)
+            const parts = result.split(/\r?\n\r?\n/);
+            const headerLines = parts[0].split(/\r?\n/);
+            const bodyText = parts.slice(1).join('\n\n');
+
+            // Parse status from first line
+            const statusMatch = headerLines[0].match(/HTTP\/[\d.]+ (\d+)/);
+            response.status = statusMatch ? parseInt(statusMatch[1], 10) : 0;
+
+            // Parse headers
+            response.headers = {};
+            for (let i = 1; i < headerLines.length; i++) {
+                const colonIndex = headerLines[i].indexOf(':');
+                if (colonIndex > 0) {
+                    const key = headerLines[i].substring(0, colonIndex).trim();
+                    const value = headerLines[i].substring(colonIndex + 1).trim();
+                    response.headers[key.toLowerCase()] = value;
+                }
+            }
+
+            // Parse body
+            response.data = bodyText;
+
+            // Parse JSON response if applicable
             if (typeof response.data === 'string') {
                 const regex = /^\s*(?:\[.*\]|\{.*\})\s*$/s;
                 if (regex.test(response.data)) {
@@ -407,8 +423,7 @@ class Test extends Expect {
                         const o = JSON.parse(response.data);
                         response.data = o;
                     } catch (err) {
-                        if (err instanceof SyntaxError) {
-                        } else {
+                        if (!(err instanceof SyntaxError)) {
                             throw err;
                         }
                     }
@@ -420,19 +435,14 @@ class Test extends Expect {
             }
 
             summary.response = response.data;
-            summary.status = result.status;
-
-            response.status = result.status;
+            summary.status = response.status;
         } catch (error) {
             response.error = '';
-            if (error.cause) {
-                response.error = '' + error.cause.message;
-            }
-            if (response.error === '' && Array.isArray(error.errors)) {
-                response.error = error.errors[error.errors.length - 1].message;
-            }
-            if (response.error === '') {
+            if (error.message) {
                 response.error = error.message;
+            }
+            if (error.stderr) {
+                response.error = error.stderr.toString().trim() || response.error;
             }
             let print = response.error;
             if (print) {
@@ -440,12 +450,9 @@ class Test extends Expect {
                 console.error(print);
                 console.log();
                 const debug = utils.stringToBoolean(process.env.DEBUG);
-                if (error.name === 'AggregateError') {
-                } else {
-                    if (debug && error.stack) {
-                        console.error(error.stack);
-                        console.log();
-                    }
+                if (debug && error.stack) {
+                    console.error(error.stack);
+                    console.log();
                 }
             }
         }
