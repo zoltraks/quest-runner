@@ -13,6 +13,8 @@ It is also possible to conditionally skip steps or follow an alternative process
 
 > Please consider following this project's author [Filip Golewski](https://github.com/zoltraks) and ⭐ the [project](https://github.com/zoltraks/quest-runner) to show your ❤️ and support. 
 
+See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
+
 ## Install ##
 
 Install with [npm](https://www.npmjs.com/) in current directory:
