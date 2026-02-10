@@ -11,11 +11,13 @@
 // - Add a new book
 // - Verify the book was added
 
-const BASE_URL = 'https://localhost:9090';
+const REMOTE = 'https://localhost:9090';
 
 task('Authentication', () => {
 
     step('Obtain JWT token', x => {
+        x.setBase(process.env.REMOTE || REMOTE);
+
         const payload = {
             grant_type: 'client_credentials',
             client_id: 'client',
@@ -24,7 +26,7 @@ task('Authentication', () => {
 
         x.call(
             'POST',
-            `${BASE_URL}/api/auth/token`,
+            '/api/auth/token',
             payload,
             null,
             { insecure: true }
@@ -55,7 +57,7 @@ task('Book Retrieval', () => {
 
         x.call(
             'GET',
-            `${BASE_URL}/api/books`,
+            '/api/books',
             null,
             headers,
             { insecure: true }
@@ -90,7 +92,7 @@ task('Book Insertion', () => {
 
         x.call(
             'POST',
-            `${BASE_URL}/api/books`,
+            '/api/books',
             newBook,
             headers,
             { insecure: true }
@@ -118,7 +120,7 @@ task('Book Insertion', () => {
 
         x.call(
             'GET',
-            `${BASE_URL}/api/books`,
+            '/api/books',
             null,
             headers,
             { insecure: true }
@@ -153,7 +155,7 @@ task('Book Insertion', () => {
 
             x.call(
                 'PUT',
-                `${BASE_URL}/api/books/${bookId}`,
+                `/api/books/${bookId}`,
                 updatedBook,
                 headers,
                 { insecure: true }
@@ -177,7 +179,7 @@ task('Book Insertion', () => {
 
             x.call(
                 'GET',
-                `${BASE_URL}/api/books`,
+                '/api/books',
                 null,
                 headers,
                 { insecure: true }
@@ -210,7 +212,7 @@ task('Book Insertion', () => {
 
             x.call(
                 'DELETE',
-                `${BASE_URL}/api/books/${bookId}`,
+                `/api/books/${bookId}`,
                 null,
                 headers,
                 { insecure: true }
@@ -233,7 +235,7 @@ task('Book Insertion', () => {
 
             x.call(
                 'GET',
-                `${BASE_URL}/api/books`,
+                '/api/books',
                 null,
                 headers,
                 { insecure: true }

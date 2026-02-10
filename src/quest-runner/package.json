@@ -16,6 +16,8 @@
     "expect.js",
     "index.js",
     "line.js",
+    "pause.js",
+    "ping.js",
     "request.js",
     "result.js",
     "test.js",
@@ -27,6 +29,7 @@
   "dependencies": {
     "ansi-colors": "^4.1.3",
     "color-support": "^1.1.3",
+    "ping": "^1.0.0",
     "yargs": "^18.0.0"
   },
   "devDependencies": {

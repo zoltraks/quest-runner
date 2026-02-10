@@ -269,14 +269,14 @@ class Test extends Expect {
         if (options.timeout == undefined && this.timeout != undefined) options.timeout = this.timeout;
         let agent;
         switch (protocol) {
-        case 'https':
-            const https = require('https');
-            agent = new https.Agent(options);
-            break;
-        case 'http':
-            const http = require('http');
-            agent = new http.Agent(options);
-            break;
+            case 'https':
+                const https = require('https');
+                agent = new https.Agent(options);
+                break;
+            case 'http':
+                const http = require('http');
+                agent = new http.Agent(options);
+                break;
         }
         return agent;
     }
@@ -416,49 +416,24 @@ class Test extends Expect {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async pause(options) {
+    pause(options) {
         if (typeof options === 'string') options = { text: options };
-        const ansi = require('ansi-colors');
-        const readline = require('node:readline');
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
+        const { spawnSync } = require('child_process');
+        const path = require('path');
+        const helperPath = path.join(__dirname, 'pause.js');
+
+        const config = {
+            text: options?.text,
+            time: options?.time,
+        };
+
+        spawnSync('node', [helperPath, JSON.stringify(config)], {
+            stdio: 'inherit',
+            windowsHide: true,
         });
-        const time = (0 + options?.time) * 1000;
-        let question = options?.text;
-        if (question === undefined) question = '' +
-            ansi.whiteBright('Press ') +
-            ansi.greenBright('Enter ') +
-            ansi.whiteBright('to continue... ');
-        if (question != undefined && 0 === ('' + question).trim().length) question = undefined;
-        let enter = false;
-        process.stdin.resume();
-        try {
-            await new Promise(resolve => {
-                const ac = new AbortController();
-                const signal = ac.signal;
-                signal.addEventListener('abort', () => {
-                    if (!enter) resolve();
-                }, { once: true });
-                rl.question(question ?? '', { signal }, async _answer => {
-                    enter = true;
-                    resolve();
-                });
-                if (time > 0) setTimeout(() => ac.abort(), time);
-            });
-            await new Promise(resolve => {
-                readline.moveCursor(process.stdout, 0, -1, () => {
-                    readline.clearLine(process.stdout, 1, () => {
-                        resolve();
-                    });
-                });
-            });
-        } catch {
-        } finally {
-            process.stdin.pause();
-            if (enter === true && question != undefined) {
-                console.log();
-            }
+
+        if (options?.text != undefined) {
+            console.log();
         }
     }
 
