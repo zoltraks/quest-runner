@@ -1,17 +1,19 @@
-const { execSync } = require('child_process');
-const ansi = require('ansi-colors');
+
 const utils = require('./utils.js');
 
 class HttpClient {
 
     execute(request) {
         const { method, url, headers, body, options } = request;
+        const { spawnSync } = require('child_process');
+        const path = require('path');
+
         const response = {
             url,
             method,
             headers: {},
             data: null,
-            status: 0
+            status: 0,
         };
 
         const summary = {
@@ -19,7 +21,7 @@ class HttpClient {
             method,
             request: body,
             response: null,
-            status: 0
+            status: 0,
         };
 
         const result = { response, summary };
@@ -28,47 +30,79 @@ class HttpClient {
         let taken;
 
         try {
-            const args = ['curl', '-s', '-i', '-X', method];
+            const config = {
+                method,
+                url,
+                headers,
+                body,
+                timeout: options?.timeout,
+                insecure: options?.insecure,
+            };
 
-            if (options?.timeout != undefined) {
-                args.push('--max-time', Math.ceil(options.timeout / 1000).toString());
+            const forceInsecure = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
+            if (forceInsecure && config.insecure == undefined) {
+                config.insecure = true;
             }
 
-            for (const header in headers) {
-                if (headers[header] != undefined) {
-                    args.push('-H', `${header}: ${headers[header]}`);
-                }
-            }
-
-            if (body != undefined) {
-                args.push('-d', body);
-            }
-
-            // Allow self-signed certificates
-            const allow = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
-            if (allow || options?.rejectUnauthorized === false) {
-                args.push('-k');
-            }
-
-            args.push(url);
+            const helperPath = path.join(__dirname, 'request.js');
 
             start = performance.now();
-            const output = execSync(args.join(' '), {
+            const proc = spawnSync('node', [helperPath, JSON.stringify(config)], {
                 encoding: 'utf8',
-                maxBuffer: 50 * 1024 * 1024,
+                timeout: options?.timeout || 30000,
                 windowsHide: true,
-                shell: true
             });
             taken = performance.now() - start;
 
-            this.parseOutput(output, response);
-
-            if (taken != undefined && taken > 0) {
-                summary.time = Math.ceil(taken);
+            if (proc.error) {
+                throw proc.error;
             }
 
-            summary.response = response.data;
-            summary.status = response.status;
+            if (proc.stdout) {
+                try {
+                    const httpResult = JSON.parse(proc.stdout.trim());
+
+                    response.status = httpResult.status;
+                    response.headers = httpResult.headers || {};
+                    response.data = httpResult.data;
+
+                    if (httpResult.error) {
+                        response.error = httpResult.error;
+                    }
+
+                    // Parse JSON if applicable
+                    if (typeof response.data === 'string' && !httpResult.error) {
+                        const regex = /^\s*(?:\[.*\]|\{.*\})\s*$/s;
+                        if (regex.test(response.data)) {
+                            try {
+                                response.data = JSON.parse(response.data);
+                            } catch (err) {
+                                if (!(err instanceof SyntaxError)) {
+                                    throw err;
+                                }
+                            }
+                        }
+                    }
+
+                    if (taken != undefined && taken > 0) {
+                        summary.time = Math.ceil(taken);
+                    }
+
+                    summary.response = response.data;
+                    summary.status = response.status;
+
+                    if (response.error && options?.ignore !== true) {
+                        throw new Error(response.error);
+                    }
+
+                } catch (parseError) {
+                    const error = new Error(`Failed to parse HTTP response: ${parseError.message}`);
+                    this.handleError(error, response, summary);
+                }
+            } else {
+                const error = new Error('No response from HTTP helper');
+                this.handleError(error, response, summary);
+            }
 
         } catch (error) {
             this.handleError(error, response, summary);
@@ -77,41 +111,6 @@ class HttpClient {
         return result;
     }
 
-    parseOutput(output, response) {
-        const parts = output.split(/\r?\n\r?\n/);
-        const headerLines = parts[0].split(/\r?\n/);
-        const bodyText = parts.slice(1).join('\n\n');
-
-        const statusMatch = headerLines[0].match(/HTTP\/[\d.]+ (\d+)/);
-        response.status = statusMatch ? parseInt(statusMatch[1], 10) : 0;
-
-        response.headers = {};
-        for (let i = 1; i < headerLines.length; i++) {
-            const colonIndex = headerLines[i].indexOf(':');
-            if (colonIndex > 0) {
-                const key = headerLines[i].substring(0, colonIndex).trim();
-                const value = headerLines[i].substring(colonIndex + 1).trim();
-                response.headers[key.toLowerCase()] = value;
-            }
-        }
-
-        response.data = bodyText;
-
-        // Parse JSON response if applicable
-        if (typeof response.data === 'string') {
-            const regex = /^\s*(?:\[.*\]|\{.*\})\s*$/s;
-            if (regex.test(response.data)) {
-                try {
-                    const o = JSON.parse(response.data);
-                    response.data = o;
-                } catch (err) {
-                    if (!(err instanceof SyntaxError)) {
-                        throw err;
-                    }
-                }
-            }
-        }
-    }
 
     handleError(error, response, summary) {
         response.error = '';

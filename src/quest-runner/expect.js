@@ -71,7 +71,7 @@ class Expect extends Assert {
             const output = execSync(cmd, {
                 encoding: 'utf8',
                 timeout: (timeout + 2) * 1000,
-                windowsHide: true
+                windowsHide: true,
             });
 
             result.alive = true;

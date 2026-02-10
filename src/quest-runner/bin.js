@@ -131,7 +131,7 @@ function ensureDependencies() {
     const { execSync } = require('child_process');
     try {
         execSync('curl --version', { stdio: 'ignore', windowsHide: true });
-    } catch (error) {
+    } catch {
         console.error('Error: Required system dependency "curl" is missing.');
         console.error('Please install curl to use this tool.');
         process.exit(1);

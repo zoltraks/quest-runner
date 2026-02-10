@@ -157,5 +157,5 @@ class AssertionError extends Error {
 
 module.exports = {
     Assert,
-    AssertionError
+    AssertionError,
 };

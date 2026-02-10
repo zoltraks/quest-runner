@@ -39,6 +39,10 @@ class Test extends Expect {
 
     protocol;
 
+    timeout;
+
+    insecure;
+
     setBase(base) {
         this.base = base;
         const value = base ? base : 'empty value';
@@ -232,8 +236,6 @@ class Test extends Expect {
         return utils.squeeze(array, limit, separator);
     }
 
-    timeout;
-
     setTimeout(timeout) {
         this.timeout = timeout;
     }
@@ -244,17 +246,17 @@ class Test extends Expect {
 
     acceptSelfSignedCertificate(value) {
         if (value === false) {
-            this.options = { ...this.options, rejectUnauthorized: true };
+            this.options = { ...this.options, insecure: false };
         } else {
-            this.options = { ...this.options, rejectUnauthorized: false };
+            this.options = { ...this.options, insecure: true };
         }
     }
 
     createAgent(options) {
-        const allow = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
+        const forceInsecure = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
         options = options == undefined ? {} : { ...options };
         if (this.options) options = { ...this.options, ...options };
-        if (options.rejectUnauthorized == undefined && allow) options.rejectUnauthorized = false;
+        if (forceInsecure || options.insecure === true) options.rejectUnauthorized = false;
         let protocol = 'https';
         if (options.protocol === '') throw Error('Unknown protocol');
         if (options.protocol != undefined) {
@@ -336,8 +338,7 @@ class Test extends Expect {
         summary.method = method;
         if (payload) summary.request = payload;
 
-        let start;
-        let taken;
+
 
         if (options?.silent !== true) {
             let anonymous = true;
@@ -362,9 +363,9 @@ class Test extends Expect {
             headers,
             body,
             options: {
-                timeout: options?.timeout ?? this.timeout,
-                rejectUnauthorized: this.options?.rejectUnauthorized
-            }
+                timeout: options?.timeout ?? this.options?.timeout ?? this.timeout,
+                insecure: options?.insecure ?? this.options?.insecure ?? this.insecure,
+            },
         });
 
         this.response = result.response;
@@ -464,5 +465,5 @@ class Test extends Expect {
 }
 
 module.exports = {
-    Test
+    Test,
 };

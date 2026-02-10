@@ -307,7 +307,7 @@ This function takes five arguments which are in order:
 
 First two parameters ``method`` and ``url`` are required.
 
-HTTP requests are made using ``curl`` via synchronous execution.
+HTTP requests are made using Node.js's built-in ``https`` and ``http`` modules via synchronous execution.
 
 ```js
 task(() => step(x => x.result(x.call('GET', 'https://www.google.com'))));
@@ -315,7 +315,7 @@ task(() => step(x => x.result(x.call('GET', 'https://www.google.com'))));
 
 Additional options may be passed like ``timeout`` or ``keepAlive``.
 
-To bypass self signed certificate you may set ``rejectUnauthorized`` to ``false``.
+To bypass self signed certificate you may set ``insecure`` to ``true``.
 
 ```js
 task(() => {
@@ -323,7 +323,7 @@ task(() => {
     step(x => {
         x.result(x.call(
             'GET', 'https://placeholder.alyx.pl:6502',
-            null, null, { rejectUnauthorized: false }));
+            null, null, { insecure: true }));
     });
 
 });

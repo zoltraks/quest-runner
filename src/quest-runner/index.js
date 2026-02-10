@@ -46,7 +46,7 @@ const task = (name, code, info) => {
     state.task.push({
         name,
         code,
-        info
+        info,
     });
 };
 
@@ -58,7 +58,7 @@ const step = (name, code, info) => {
     state.step.push({
         name,
         code,
-        info
+        info,
     });
 };
 
@@ -113,7 +113,7 @@ const run = async argv => {
 
             let skip = false;
 
-            if (task.info != undefined && typeof task.info === 'object') { 
+            if (task.info != undefined && typeof task.info === 'object') {
                 if (task.info.skip === true) {
                     skip = true;
                 }
@@ -140,7 +140,7 @@ const run = async argv => {
                 }
             }
 
-            if (skip && task.info != undefined && typeof task.info === 'object') { 
+            if (skip && task.info != undefined && typeof task.info === 'object') {
                 if (task.info.always === true) {
                     skip = false;
                 }
@@ -188,7 +188,7 @@ const run = async argv => {
                 start = utils.getTimeString();
                 entry = {
                     task: { name: task.name, number },
-                    step: { name: step.name, index, start: new Date() }
+                    step: { name: step.name, index, start: new Date() },
                 };
                 if (step.info) entry.step.info = step.info;
                 result.stack.push(entry);
