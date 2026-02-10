@@ -15,20 +15,19 @@ async function main() {
         let command = (rest[0] ?? '').toLowerCase();
         const name = rest[1];
         switch (command.toLowerCase()) {
-        case '':
-            command = 'help';
-        case 'play':
-        case 'list':
-            break;
-        default:
-            throw Error(`Unknown command ${command}`);
+            case '':
+                command = 'help';
+            case 'play':
+            case 'list':
+                break;
+            default:
+                throw Error(`Unknown command ${command}`);
         }
         const file = await locateScriptFile(name);
         const exists = await fileExists(file);
         if (!exists) return;
         if (command == undefined) {
         } else if (command === 'play' || command === 'list') {
-            if (command === 'play') ensureDependencies();
             argv.file = file;
             const code = '' + await fs.readFile(file);
             // eslint-disable-next-line no-unused-vars
@@ -125,17 +124,6 @@ async function locateScriptFile(name) {
         return;
     }
     return file;
-}
-
-function ensureDependencies() {
-    const { execSync } = require('child_process');
-    try {
-        execSync('curl --version', { stdio: 'ignore', windowsHide: true });
-    } catch (error) {
-        console.error('Error: Required system dependency "curl" is missing.');
-        console.error('Please install curl to use this tool.');
-        process.exit(1);
-    }
 }
 
 main();

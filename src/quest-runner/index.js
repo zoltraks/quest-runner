@@ -46,7 +46,7 @@ const task = (name, code, info) => {
     state.task.push({
         name,
         code,
-        info
+        info,
     });
 };
 
@@ -58,7 +58,7 @@ const step = (name, code, info) => {
     state.step.push({
         name,
         code,
-        info
+        info,
     });
 };
 
@@ -104,6 +104,7 @@ const run = async argv => {
     let fail;
     let parameters = {};
     let base = undefined;
+    let headers = undefined;
 
     for (const task of state.task) {
 
@@ -113,7 +114,7 @@ const run = async argv => {
 
             let skip = false;
 
-            if (task.info != undefined && typeof task.info === 'object') { 
+            if (task.info != undefined && typeof task.info === 'object') {
                 if (task.info.skip === true) {
                     skip = true;
                 }
@@ -140,7 +141,7 @@ const run = async argv => {
                 }
             }
 
-            if (skip && task.info != undefined && typeof task.info === 'object') { 
+            if (skip && task.info != undefined && typeof task.info === 'object') {
                 if (task.info.always === true) {
                     skip = false;
                 }
@@ -156,6 +157,7 @@ const run = async argv => {
             state.test = new Test();
             state.test.base = base;
             state.test.parameters = parameters;
+            if (headers) state.test.headers = headers;
             state.step = [];
             if (task.code && typeof task.code === 'function') {
                 await task.code(state.test);
@@ -188,7 +190,7 @@ const run = async argv => {
                 start = utils.getTimeString();
                 entry = {
                     task: { name: task.name, number },
-                    step: { name: step.name, index, start: new Date() }
+                    step: { name: step.name, index, start: new Date() },
                 };
                 if (step.info) entry.step.info = step.info;
                 result.stack.push(entry);
@@ -243,8 +245,9 @@ const run = async argv => {
 
                 parameters = state.test.parameters;
                 base = state.test.base;
+                headers = state.test.headers;
             }
-            if (argv.operation !== 'list') console.log();
+
         }
         catch (error) {
 

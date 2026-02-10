@@ -45,8 +45,10 @@ class Expect extends Assert {
     }
 
     expectAlive(host, config, message) {
-        const { execSync } = require('child_process');
+        const { spawnSync } = require('child_process');
+        const path = require('path');
         const ansi = require('ansi-colors');
+
         if (host == undefined || typeof (host) !== 'string' || !(host = host.trim()).length) return;
         if (config != undefined && message == undefined && typeof (config) === 'string') {
             message = config;
@@ -58,32 +60,43 @@ class Expect extends Assert {
 
         const result = { host, alive: false };
 
-        try {
-            // Use ping command synchronously
-            const isWindows = process.platform === 'win32';
-            let cmd;
-            if (isWindows) {
-                cmd = `ping -n 1 -w ${timeout * 1000} ${host}`;
-            } else {
-                cmd = `ping -c 1 -W ${timeout} ${host}`;
-            }
+        const helperPath = path.join(__dirname, 'ping.js');
+        const args = {
+            host,
+            options: {
+                timeout,
+            },
+        };
 
-            const output = execSync(cmd, {
+        try {
+            const proc = spawnSync('node', [helperPath, JSON.stringify(args)], {
                 encoding: 'utf8',
                 timeout: (timeout + 2) * 1000,
-                windowsHide: true
+                windowsHide: true,
             });
 
-            result.alive = true;
-            result.output = output.replace(/\s+/g, ' ').trim();
+            if (proc.error) {
+                throw proc.error;
+            }
 
-            // Try to extract IP address
-            const ipMatch = output.match(/\[?([\d.]+)\]?/);
-            if (ipMatch) result.address = ipMatch[1];
+            if (proc.stdout) {
+                try {
+                    const res = JSON.parse(proc.stdout.trim());
+                    result.alive = res.alive;
+                    result.output = res.output;
+                    if (res.output === 'Ping failed' && !res.alive) {
+                        result.output = proc.stdout.trim();
+                    }
+                    result.time = typeof res.time === 'number' ? Math.round(res.time) : undefined;
+                    if (res.numeric_host) result.address = res.numeric_host;
+                } catch (parseError) {
+                    // If JSON parse fails, it might be raw error output or empty
+                    result.output = proc.stdout.trim() || `Failed to parse ping response: ${parseError.message}`;
+                }
+            } else {
+                result.output = proc.stderr ? proc.stderr.toString().trim() : 'No output from ping helper';
+            }
 
-            // Try to extract time
-            const timeMatch = output.match(/time[=<](\d+)/i);
-            if (timeMatch) result.time = parseInt(timeMatch[1], 10);
         } catch (error) {
             result.alive = false;
             result.output = error.message || 'Ping failed';

@@ -236,5 +236,5 @@ class Result {
 }
 
 module.exports = {
-    Result
+    Result,
 };
