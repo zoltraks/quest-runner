@@ -40,6 +40,7 @@ task('Authentication', () => {
         x.assertEquals(response.data.expires_in, 3600);
 
         x.setParameter('token', response.data.access_token);
+        x.setAuthorization('Bearer', response.data.access_token);
 
         x.result('Successfully obtained JWT token');
     });
@@ -49,17 +50,12 @@ task('Authentication', () => {
 task('Book Retrieval', () => {
 
     step('Get all books', x => {
-        const token = x.getParameter('token');
-
-        const headers = {
-            'Authorization': `Bearer ${token}`,
-        };
 
         x.call(
             'GET',
             '/api/books',
             null,
-            headers,
+            null,
             { insecure: true }
         );
 
@@ -79,12 +75,6 @@ task('Book Retrieval', () => {
 task('Book Insertion', () => {
 
     step('Add a new book', x => {
-        const token = x.getParameter('token');
-
-        const headers = {
-            'Authorization': `Bearer ${token}`
-        };
-
         const newBook = {
             title: 'The Hobbit',
             author: 'J.R.R. Tolkien',
@@ -94,7 +84,7 @@ task('Book Insertion', () => {
             'POST',
             '/api/books',
             newBook,
-            headers,
+            null,
             { insecure: true }
         );
 
@@ -111,18 +101,13 @@ task('Book Insertion', () => {
     });
 
     step('Verify book was added', x => {
-        const token = x.getParameter('token');
         const initialCount = x.getParameter('initialBookCount');
-
-        const headers = {
-            'Authorization': `Bearer ${token}`
-        };
 
         x.call(
             'GET',
             '/api/books',
             null,
-            headers,
+            null,
             { insecure: true }
         );
 
@@ -141,12 +126,7 @@ task('Book Insertion', () => {
     task('Book Update', () => {
 
         step('Update book details', x => {
-            const token = x.getParameter('token');
             const bookId = x.getParameter('newBookId');
-
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            };
 
             const updatedBook = {
                 title: 'The Hobbit - Experienced',
@@ -157,7 +137,7 @@ task('Book Insertion', () => {
                 'PUT',
                 `/api/books/${bookId}`,
                 updatedBook,
-                headers,
+                null,
                 { insecure: true }
             );
 
@@ -171,17 +151,12 @@ task('Book Insertion', () => {
         });
 
         step('Verify book update', x => {
-            const token = x.getParameter('token');
-
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            };
 
             x.call(
                 'GET',
                 '/api/books',
                 null,
-                headers,
+                null,
                 { insecure: true }
             );
 
@@ -203,18 +178,13 @@ task('Book Insertion', () => {
     task('Book Deletion', () => {
 
         step('Delete the book', x => {
-            const token = x.getParameter('token');
             const bookId = x.getParameter('newBookId');
-
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            };
 
             x.call(
                 'DELETE',
                 `/api/books/${bookId}`,
                 null,
-                headers,
+                null,
                 { insecure: true }
             );
 
@@ -226,18 +196,13 @@ task('Book Insertion', () => {
         });
 
         step('Verify book deletion', x => {
-            const token = x.getParameter('token');
-            const initialCount = x.getParameter('initialBookCount');
-
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            };
+            const initialBookCount = x.getParameter('initialBookCount');
 
             x.call(
                 'GET',
                 '/api/books',
                 null,
-                headers,
+                null,
                 { insecure: true }
             );
 
@@ -245,7 +210,7 @@ task('Book Insertion', () => {
             const bookId = x.getParameter('newBookId');
 
             x.assertTrue(response.status == 200);
-            x.assertEquals(response.data.value.length, initialCount);
+            x.assertEquals(response.data.value.length, initialBookCount);
 
             const book = response.data.value.find(b => b.id === bookId);
             x.assertNull(book, `Book ${bookId} should not exist`);

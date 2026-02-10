@@ -79,6 +79,24 @@ class Test extends Expect {
         }
     }
 
+    setAuthorization(type, token) {
+        if (type === undefined) {
+            this.clearAuthorization();
+            return;
+        }
+        let value;
+        if (token === undefined) {
+            value = type;
+        } else {
+            value = type + ' ' + token;
+        }
+        this.setHeader('Authorization', value);
+    }
+
+    clearAuthorization() {
+        this.setHeader('Authorization', null);
+    }
+
     getHeader(header) {
         const search = header.toLowerCase();
         const key = Object.keys(this.headers).find(key => key?.toLowerCase() === search);
@@ -96,9 +114,10 @@ class Test extends Expect {
     }
 
     mergeHeaders() {
-        const dictionary = this.headers ?? {};
+        const dictionary = { ...(this.headers ?? {}) };
         for (let i = 0; i < arguments.length; i++) {
             const argument = arguments[i];
+            if (argument == undefined) continue;
             for (const field in argument) {
                 if (!argument.hasOwnProperty(field)) continue;
                 const search = field.toLowerCase();

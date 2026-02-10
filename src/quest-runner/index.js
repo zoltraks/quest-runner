@@ -104,6 +104,7 @@ const run = async argv => {
     let fail;
     let parameters = {};
     let base = undefined;
+    let headers = undefined;
 
     for (const task of state.task) {
 
@@ -156,6 +157,7 @@ const run = async argv => {
             state.test = new Test();
             state.test.base = base;
             state.test.parameters = parameters;
+            if (headers) state.test.headers = headers;
             state.step = [];
             if (task.code && typeof task.code === 'function') {
                 await task.code(state.test);
@@ -243,6 +245,7 @@ const run = async argv => {
 
                 parameters = state.test.parameters;
                 base = state.test.base;
+                headers = state.test.headers;
             }
 
         }
