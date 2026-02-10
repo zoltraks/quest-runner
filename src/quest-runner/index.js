@@ -244,7 +244,7 @@ const run = async argv => {
                 parameters = state.test.parameters;
                 base = state.test.base;
             }
-            if (argv.operation !== 'list') console.log();
+
         }
         catch (error) {
 

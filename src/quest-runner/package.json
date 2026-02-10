@@ -14,7 +14,6 @@
     "assert.js",
     "bin.js",
     "expect.js",
-    "http.js",
     "index.js",
     "line.js",
     "request.js",
