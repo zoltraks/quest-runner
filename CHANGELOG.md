@@ -1,5 +1,20 @@
 # Changes
 
+## Version 0.3.1
+
+Improved authorization management, synchronous operation stability, and comprehensive documentation refinements since 0.3.0.
+
+- Eliminated the requirement for the `curl` system utility by implementing a dedicated Node.js helper (`request.js`) using built-in `http` and `https` modules for synchronous API calls.
+- Replaced the system `ping` command with the `ping` npm package for better cross-platform support and consistent output parsing.
+- Implemented `x.setAuthorization(type, token)` and `x.clearAuthorization()` methods in the `Test` class for simplified management of persistent authorization headers.
+- Refactored `x.call()` header merging to be non-destructive, ensuring that local header overrides do not affect the persistent global state.
+- Enabled header persistence across task boundaries, ensuring authorization and other custom headers are maintained throughout the entire scenario.
+- Improved the reliability of synchronous operations (`x.pause()` and `x.expectAlive()`) by utilizing dedicated helper scripts and `child_process.spawnSync`.
+- Added a "Performance" section to README.md explaining the trade-offs of the synchronous architecture and process spawning overhead.
+- Performed a comprehensive review of all documentation, fixing numerous grammar, spelling, and phrasing issues in both root and package README files.
+- Resolved all remaining linting and indentation warnings across the codebase for better maintainability and code quality.
+- Removed legacy `ensureDependencies` check from `bin.js` as system-level dependencies are no longer required for HTTP operations.
+
 ## Version 0.3.0
 
 Synchronous API redesign, dependency cleanup, and code quality improvements since 0.2.1.

@@ -1,7 +1,7 @@
 Quest Runner
 ============
 
-This is a remote API testing tool that uses **JavaScript** language and **nodeJS** as a runtime environment.
+This is a remote API testing tool that uses the **JavaScript** language and **Node.js** as a runtime environment.
 
 Unlike creating request and response configurations in any of the popular API testing tools, here the test scenario script contains code that calls relevant requests to the API and checks the results. 
 
@@ -17,7 +17,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 
 ## Install ##
 
-Install with [npm](https://www.npmjs.com/) in current directory:
+Install with [npm](https://www.npmjs.com/) in the current directory:
 
 ```sh
 $ npm install quest-runner
@@ -25,7 +25,7 @@ $ npm install quest-runner
 
 This tool depends on several [npm](https://www.npmjs.com/) packages like ``yargs``, ``ansi-colors``, ``color-support``. 
 
-Required packages will be also installed.
+Required packages will also be installed.
 
 ## Scenario ##
 
@@ -45,13 +45,13 @@ This is the minimal task with only one step.
 npx quest-runner
 ```
 
-By running this command it will look for first file which name ends with ``.quest.js`` in current directory.
+Running this command will look for the first file whose name ends with ``.quest.js`` in the current directory.
 
 You should see results of running this simple scenario. 
 
 ![](media/shot/simple-hello.png)
 
-If you have more than one file which name ends with ``.quest.js``, you may specify file that should be used by quest-runner.
+If you have more than one file whose name ends with ``.quest.js``, you may specify the file that should be used by quest-runner.
 
 ```
 npx quest-runner run my.quest.js
@@ -63,15 +63,15 @@ You can omit ``.quest.js`` filename extension.
 npx quest-runner run my
 ```
 
-If all steps succeeds return code will be ``0`` (success).
+If all steps succeed, the return code will be ``0`` (success).
 
-If any step fails return code ``$?`` in bash for example will be ``1``.
+If any step fails, the return code (e.g., ``$?`` in bash) will be ``1``.
 
 ```
 npx quest-runner list
 ```
 
-List steps to take in order they are specified in scenario script.
+List steps in the order they are specified in the scenario script.
 
 ## Command line usage ##
 
@@ -142,7 +142,7 @@ task(' ', () => {
 
 ![](media/shot/alive-check.png)
 
-In case ping fails task will also fail and extra information would be printed.
+If the ping fails, the task will also fail and additional information will be printed.
 
 ```js
 task(' ', () => {
@@ -178,7 +178,7 @@ play().then(result => result.draw() || result.print());
 
 This way you may start runner directly with ``node my.quest.js`` and debug it.
 
-It is still compatible with ``npx quest-runner`` command as it honours when scenario script directly invokes ``play()``.
+It is still compatible with the ``npx quest-runner`` command as it recognizes when the scenario script directly invokes ``play()``.
 
 Also this solution it is compatible with ``nodemon`` utility so it will restart every time you changes in scenario script are saved.
 
@@ -210,7 +210,7 @@ To make HTTP request use ``x.call()``.
 
 Headers can be specified separately using ``x.setHeader()``.
 
-To clear header simply use ``x.setHeader('User-Agent');`` without specyfing value for header.
+To clear a header, simply use ``x.setHeader('User-Agent');`` without specifying a value.
 
 Let's put some simple step to check how setting headers for future requests works.
 
@@ -227,7 +227,7 @@ task(() => {
             timeout: 3000,
         };
         x.call(
-            'GET',                      // HTTP method to use (GET, PUT, POST, DELETE)
+            'GET',                      // HTTP method to use
             'https://www.google.com/',  // Endpoint URL address
             false,                      // Request body (payload)
             headers,                    // Request headers
@@ -265,6 +265,35 @@ In this case test will finish with result output of ``x.getHeader()``.
 
 List of defined headers can be obtained by ``x.getHeaders()``.
 
+Authorization header can be managed more easily using ``x.setAuthorization()``.
+
+```js
+task(() => {
+
+    step('Authorization management', x => {
+        // Use two parameters (type and token)
+        x.setAuthorization('Bearer', 'JWT_TOKEN');
+        x.result(x.getHeader('Authorization'));
+
+        // Or use one parameter (full authorization string)
+        x.setAuthorization('Bearer FULL_JWT_TOKEN');
+        x.result(x.getHeader('Authorization'));
+
+        // Clear authorization explicitly
+        x.clearAuthorization();
+        x.assertNull(x.getHeader('Authorization'));
+
+        // Or clear using setAuthorization with no parameters
+        x.setAuthorization('Basic XYZ');
+        x.setAuthorization();
+        x.assertNull(x.getHeader('Authorization'));
+    });
+
+});
+```
+
+Headers specified directly in ``x.call()`` will override the persistent authorization header.
+
 Simple checks are achieved with ``x.assert*()`` functions which are basic operations that work with any code.
 
 ```js
@@ -278,22 +307,9 @@ task(() => {
 });
 ```
 
-During step execution it is possible to specify which step should be taken next, overriding sequential step execution in order they are defined.
+During step execution, it is possible to specify which step should be taken next, overriding the default sequential execution order.
 
 All API functions including ``x.call()`` and ``x.expect*()`` are synchronous. No ``async`` or ``await`` needed.
-
-```js
-task(() => {
-
-    step(async x => {
-        x.assertTrue(undefined == null);    // must be false
-        x.assertFalse(undefined === null);  // must be false
-        x.assertNull(undefined);            // undefined is null
-        x.result('Even when await is not needed it will still work');
-    });
-
-});
-```
 
 Making HTTP calls is simplified to one generic function ``x.call()``.
 
@@ -394,8 +410,7 @@ task(() => {
 
 In summary you will notice there is ``time`` field which indicates time taken in milliseconds.
 
-If you want to use ``x.getResponse()`` and ``x.getRequest()`` after ``x.call()`` for logging instead
-you will probably get lot of data as both HTTP request and response contain array of headers.
+If you want to use ``x.getResponse()`` and ``x.getRequest()`` after ``x.call()`` for logging, you will probably get a lot of data as both the HTTP request and response contain an array of headers.
 
 ```js
 task(() => {
@@ -488,7 +503,7 @@ task(() => {
 }
 ```
 
-There is separate request information from last ``x.call()`` available at ``x.getRequest()``.
+There is separate request information from the last ``x.call()`` available at ``x.getRequest()``.
 
 Sometimes you don't care about request and response headers. 
 
@@ -554,7 +569,7 @@ task(() => {
 ERROR timeout of 300ms exceeded
 ```
 
-But you can choose to ignore connection errors by setting ``ignore`` options to ``true``. Error will still be available in response ``error`` field. 
+But you can choose to ignore connection errors by setting the ``ignore`` option to ``true``. The error will still be available in the response ``error`` field. 
 
 ```js
 task(() => {
@@ -576,9 +591,9 @@ ERROR timeout of 500ms exceeded
 Assertion Empty failed for "timeout of 500ms exceeded"
 ```
 
-To store information that will be available for other steps you can use ``x.setParameter()`` and ``x.getParameter()`` functions.
+To store information that will be available for other steps, you can use the ``x.setParameter()`` and ``x.getParameter()`` functions.
 
-Parameter names as well as HTTP headers are case insensitive.
+Parameter names, as well as HTTP headers, are case-insensitive.
 
 Parameters are stored globally and available through all tasks.
 
@@ -609,15 +624,15 @@ task('Parameter play', () => {
 
 ![](media/shot/parameter-play.png)
 
-Use parameters for storing authorization tokens and other values needed by sequential API calls.
+Use parameters for storing authorization tokens and other values needed for sequential API calls.
 
-Parameters exists only in its own ``task``.
+Parameters are persistent across tasks.
 
 Use ``x.next()`` to specify which step should be taken next after current step.
 
 This function takes string argument with step name or one of its aliases.
 
-When declaring step you can specify additional aliases if you want to keep name changeble or empty.
+When declaring a step, you can specify additional aliases if you want to keep the name changeable or empty.
 
 ```js
 task('Remote API check', () => {
@@ -643,7 +658,7 @@ task('Using next', () => {
 
 In case step could not be found, execution will be aborted with message ``Step not found. Missing "no future".``.
 
-Tasks can be easy disabled by setting additional property ``skip`` to ``true``.
+Tasks can be easily disabled by setting the additional property ``skip`` to ``true``.
 
 ```js
 task(() => {
@@ -651,9 +666,7 @@ task(() => {
 }, { skip: true });
 ```
 
-When using the ``--task`` command line option (which is not yet supported, sorry, next time),
-not only the specified task will be started, even if it has the ``skip`` option set to ``true``,
-but also all tasks that have the ``always`` option set to ``true``.
+When using the ``--task`` command line option, not only will the specified task be started (even if it has the ``skip`` option set to ``true``), but also all tasks that have the ``always`` option set to ``true``.
 
 ```js
 task(() => {
@@ -746,11 +759,11 @@ task('Finalize', () => {
 
 ![](media/shot/initialize-finalize.png)
 
-This way even if erorr occurs and exception is thrown in one task, it is still possible to do some cleanup stuff in different task.
+This way, even if an error occurs and an exception is thrown in one task, it is still possible to perform cleanup in a different task.
 
 ## Assertions and expectancy ##
 
-Below is a simple list of ``x.assert*()`` and ``x.expect*()`` functions to be used in scenario code.
+Below is a list of the ``x.assert*()`` and ``x.expect*()`` functions available for use in scenario code.
 
 Last parameter ``message`` is optional and will be printed instead of default information.
 
@@ -763,7 +776,7 @@ Last parameter ``message`` is optional and will be printed instead of default in
 | ``x.assertEmpty(subject, message)``           | Require subject to be empty                           |
 | ``x.assertNotEmpty(subject, message)``        | Require subject not to be empty                       |
 | ``x.assertEquals(check, value, message)``     | Require value to be equal to check                    |
-| ``x.assertNotEquals(check, value, message)``  | Require value not not to be equal to check            |
+| ``x.assertNotEquals(check, value, message)``  | Require value not to be equal to check                |
 | | |
 | ``x.expectAny([...], message)``               | Require at least one of check to not throw exception  |
 | ``x.expectAll([...], message)``               | Require all of checks not to throw exception          |
@@ -834,9 +847,9 @@ Print out current time without date part.
 x.time();
 ```
 
-Current time is returned so you can store it in variable.
+The current time is returned so you can store it in a variable.
 
-You can also omit printing time passing option ``silent`` set to ``true``.
+You can also omit printing the time by passing the option ``silent`` set to ``true``.
 
 ```js
 const time = x.time({ silent: true });
@@ -849,19 +862,19 @@ Print "Press Enter to continue..." and wait for user to press enter key.
 await x.pause();
 ```
 
-Customize pause message by passing string as function argument.
+Customize the pause message by passing a string as the function argument.
 
 ```js
 await x.pause('Enter anything... ');
 ```
 
-You can pass number of seconds as ``time`` options to set timeout and continue even if user doesn't enter anything.
+You can pass the number of seconds as a ``time`` option to set a timeout and continue even if the user doesn't enter anything.
 
 ```js
 await x.pause({ time: 3 });
 ```
 
-Combine options as function parameter customizing text and setting timeout.
+Combine options as a function parameter, customizing the text and setting a timeout.
 
 ```js
 await x.pause({ text: 'Wait 3 seconds or press enter...', time: 3 });
@@ -900,6 +913,29 @@ When set to ``1`` step error will remain hidden in results.
 ### ``SIZE_STEP_NAME`` ###
 
 Step name size limit. Default is 40.
+
+## Performance ##
+
+To keep scenario code simple and synchronous, each ``x.call()`` and ``x.expectAlive()`` execution spawns a new Node.js process using ``spawnSync``. 
+
+This architectural decision introduces a constant overhead of approximately **50-100ms** per call, depending on the system's process spawning performance. While this makes the test execution slightly slower than an asynchronous approach, it significantly simplifies the logic flow and readability of the test scenarios.
+
+Although the core functions are synchronous, Quest Runner supports ``async`` steps and the ``await`` keyword. This is primarily for compatibility and to allow for future transitions.
+
+Using ``await`` in the current version does not change the fact that ``x.call()`` internally uses a synchronous process spawn. However, a native asynchronous approach that eliminates this overhead may be supported in future versions of Quest Runner.
+
+```js
+task(() => {
+
+    step(async x => {
+        await x.assertTrue(undefined == null);    // must be false
+        await x.assertFalse(undefined === null);  // must be false
+        await x.assertNull(undefined);            // undefined is null
+        await x.result('Even when await is not needed it will still work');
+    });
+
+});
+```
 
 ## Author ##
 
