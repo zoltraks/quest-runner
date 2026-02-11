@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "smoke": "node ./bin.js play ./test/smoke.quest.js",
     "lint": "eslint *.js",
     "lint:fix": "eslint *.js --fix"
   },
