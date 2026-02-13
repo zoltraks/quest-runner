@@ -1,5 +1,16 @@
 # Changes
 
+## Version 0.3.2
+
+Runner stability and workflow improvements since 0.3.1.
+
+- Fixed session state persistence so `base`, `parameters`, `headers`, and `options` remain available after a failed step, preventing follow-up errors caused by missing base URL.
+- Added `x.setOption(name, value)` to persist options across steps and tasks, with per-call options passed to `x.call()` taking precedence.
+- Removed `x.acceptSelfSignedCertificate()` in favor of `x.setInsecure()` and updated examples and documentation accordingly.
+- Updated `x.call()` option handling to merge persisted options with per-call options, and to apply the merged options consistently for `silent`, `ignore`, `timeout`, and `insecure`.
+- Made `x.wait(ms)` synchronous (blocking) so it delays subsequent steps without requiring `async`/`await`.
+- Added new `example/wait.quest.js` scenario demonstrating `x.wait()` behavior.
+
 ## Version 0.3.1
 
 Improved authorization management, synchronous operation stability, and comprehensive documentation refinements since 0.3.0.
