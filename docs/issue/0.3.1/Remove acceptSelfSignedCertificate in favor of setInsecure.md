@@ -1,4 +1,4 @@
-# Replace acceptSelfSignedCertificate with setInsecure in docs and examples
+# Remove acceptSelfSignedCertificate in favor of setInsecure
 
 The `Test` API currently provides both `x.acceptSelfSignedCertificate()` and `x.setInsecure()`.
 
