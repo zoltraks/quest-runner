@@ -190,8 +190,17 @@ class Test extends Expect {
         return utils.stringLimit(value, length, suffix);
     }
 
-    setOptions(options) {
-        this.options = options;
+    setOption(name, value) {
+        if (name == undefined) return;
+        if (this.options == undefined) this.options = {};
+        const search = ('' + name).toLowerCase();
+        let key = Object.keys(this.options).find(name => name.toLowerCase() === search);
+        if (value == undefined) {
+            if (key != undefined) delete this.options[key];
+        } else {
+            if (key == undefined) key = name;
+            this.options[key] = value;
+        }
     }
 
     result(o) {
@@ -271,14 +280,6 @@ class Test extends Expect {
         this.options = { ...this.options, insecure: this.insecure };
     }
 
-    acceptSelfSignedCertificate(value) {
-        if (value === false) {
-            this.options = { ...this.options, insecure: false };
-        } else {
-            this.options = { ...this.options, insecure: true };
-        }
-    }
-
     createAgent(options) {
         const forceInsecure = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
         options = options == undefined ? {} : { ...options };
@@ -313,6 +314,7 @@ class Test extends Expect {
         const request = {};
         const response = {};
         const summary = {};
+        const effectiveOptions = { ...(this.options ?? {}), ...(options ?? {}) };
         url = '' + (url ?? '');
         if (url === '') throw Error('Empty endpoint address');
         if (utils.getProtocol(url) === '') {
@@ -365,9 +367,7 @@ class Test extends Expect {
         summary.method = method;
         if (payload) summary.request = payload;
 
-
-
-        if (options?.silent !== true) {
+        if (effectiveOptions?.silent !== true) {
             let anonymous = true;
             for (const header in request.headers) {
                 if (header.toLowerCase() === 'authorization') {
@@ -389,8 +389,8 @@ class Test extends Expect {
             headers,
             body,
             options: {
-                timeout: options?.timeout ?? this.options?.timeout ?? this.timeout,
-                insecure: options?.insecure ?? this.options?.insecure ?? this.insecure,
+                timeout: effectiveOptions?.timeout ?? this.timeout,
+                insecure: effectiveOptions?.insecure ?? this.insecure,
             },
         });
 
@@ -398,7 +398,7 @@ class Test extends Expect {
         this.summary = result.summary;
         Object.assign(response, result.response);
 
-        if (response.error != undefined && options?.ignore !== true) {
+        if (response.error != undefined && effectiveOptions?.ignore !== true) {
             throw Error(response.error);
         }
 
@@ -440,7 +440,9 @@ class Test extends Expect {
 
     wait(ms) {
         if (0 + ms < 1) ms = 1000;
-        return new Promise(resolve => setTimeout(resolve, ms));
+        const buffer = new SharedArrayBuffer(4);
+        const array = new Int32Array(buffer);
+        Atomics.wait(array, 0, 0, ms);
     }
 
     pause(options) {

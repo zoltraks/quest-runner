@@ -331,6 +331,12 @@ task(() => step(x => x.result(x.call('GET', 'https://www.google.com'))));
 
 Additional options may be passed like ``timeout`` or ``keepAlive``.
 
+To persist an option for future calls you can use ``x.setOption(name, value)``.
+
+To remove a persisted option, call ``x.setOption(name)`` without specifying a value.
+
+Options specified directly in ``x.call()`` will override options set by ``x.setOption()``.
+
 To bypass self signed certificate you may set ``insecure`` to ``true``.
 
 ```js
@@ -600,6 +606,8 @@ To store information that will be available for other steps, you can use the ``x
 Parameter names, as well as HTTP headers, are case-insensitive.
 
 Parameters are stored globally and available through all tasks.
+
+Options set with ``x.setOption()`` are persistent across tasks and will be merged with options passed directly to ``x.call()``.
 
 ```js
 task('Parameter play', () => {

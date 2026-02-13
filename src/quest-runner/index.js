@@ -105,6 +105,7 @@ const run = async argv => {
     let parameters = {};
     let base = undefined;
     let headers = undefined;
+    let options = {};
 
     for (const task of state.task) {
 
@@ -161,6 +162,7 @@ const run = async argv => {
             state.test.base = base;
             state.test.parameters = parameters;
             if (headers) state.test.headers = headers;
+            if (options) state.test.options = options;
             state.step = [];
             if (task.code && typeof task.code === 'function') {
                 await task.code(state.test);
@@ -197,58 +199,62 @@ const run = async argv => {
                 };
                 if (step.info) entry.step.info = step.info;
                 result.stack.push(entry);
-                if (step.code) {
-                    let empty = true;
-                    const originalLog = console.log;
-                    const originalError = console.error;
-                    console.log = (...args) => {
-                        // empty = false;
-                        // console.log = originalLog;
-                        // console.log(args);
-                        const line = args.join('');
-                        empty = line.length === 0 || line.endsWith('\n');
-                        originalLog(...args);
-                    };
-                    console.error = (...args) => {
-                        // empty = false;
-                        // console.error = originalError;
-                        // console.error(args);
-                        const line = args.join('');
-                        empty = line.length === 0 || line.endsWith('\n');
-                        originalError(...args);
-                    };
-                    try {
-                        if (typeof step.code === 'function') {
-                            await step.code(state.test);
+                try {
+                    if (step.code) {
+                        let empty = true;
+                        const originalLog = console.log;
+                        const originalError = console.error;
+                        console.log = (...args) => {
+                            // empty = false;
+                            // console.log = originalLog;
+                            // console.log(args);
+                            const line = args.join('');
+                            empty = line.length === 0 || line.endsWith('\n');
+                            originalLog(...args);
+                        };
+                        console.error = (...args) => {
+                            // empty = false;
+                            // console.error = originalError;
+                            // console.error(args);
+                            const line = args.join('');
+                            empty = line.length === 0 || line.endsWith('\n');
+                            originalError(...args);
+                        };
+                        try {
+                            if (typeof step.code === 'function') {
+                                await step.code(state.test);
+                            }
+                            if (typeof step.code === 'string') {
+                                eval(step.code);
+                            }
+                        } finally {
+                            console.log = originalLog;
+                            console.error = originalError;
+                            if (!empty) console.log();
                         }
-                        if (typeof step.code === 'string') {
-                            eval(step.code);
+                    }
+
+                    entry.time = utils.getTimeDifference(start, utils.getTimeString());
+                    if (state.test.output) {
+                        entry.result = state.test.output;
+                        delete state.test.output;
+                    }
+
+                    if (!state.test.queue.length) {
+                        index++;
+                    } else {
+                        const next = state.test.queue.shift();
+                        index = utils.findIndexDeepCaseInsensitive(state.step, 'name', next);
+                        if (index < 0) {
+                            throw `Step not found. Missing "${next}".`;
                         }
-                    } finally {
-                        console.log = originalLog;
-                        console.error = originalError;
-                        if (!empty) console.log();
                     }
+                } finally {
+                    parameters = state.test.parameters;
+                    base = state.test.base;
+                    headers = state.test.headers;
+                    options = state.test.options;
                 }
-                entry.time = utils.getTimeDifference(start, utils.getTimeString());
-                if (state.test.output) {
-                    entry.result = state.test.output;
-                    delete state.test.output;
-                }
-
-                if (!state.test.queue.length) {
-                    index++;
-                } else {
-                    const next = state.test.queue.shift();
-                    index = utils.findIndexDeepCaseInsensitive(state.step, 'name', next);
-                    if (index < 0) {
-                        throw `Step not found. Missing "${next}".`;
-                    }
-                }
-
-                parameters = state.test.parameters;
-                base = state.test.base;
-                headers = state.test.headers;
             }
 
         }
