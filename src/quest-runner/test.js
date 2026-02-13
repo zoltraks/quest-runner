@@ -365,8 +365,6 @@ class Test extends Expect {
         summary.method = method;
         if (payload) summary.request = payload;
 
-
-
         if (options?.silent !== true) {
             let anonymous = true;
             for (const header in request.headers) {
