@@ -280,14 +280,6 @@ class Test extends Expect {
         this.options = { ...this.options, insecure: this.insecure };
     }
 
-    acceptSelfSignedCertificate(value) {
-        if (value === false) {
-            this.options = { ...this.options, insecure: false };
-        } else {
-            this.options = { ...this.options, insecure: true };
-        }
-    }
-
     createAgent(options) {
         const forceInsecure = ['1', 'TRUE', 'YES'].indexOf((process.env.INSECURE ?? '').toUpperCase()) >= 0;
         options = options == undefined ? {} : { ...options };
