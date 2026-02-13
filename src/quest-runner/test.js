@@ -440,7 +440,9 @@ class Test extends Expect {
 
     wait(ms) {
         if (0 + ms < 1) ms = 1000;
-        return new Promise(resolve => setTimeout(resolve, ms));
+        const buffer = new SharedArrayBuffer(4);
+        const array = new Int32Array(buffer);
+        Atomics.wait(array, 0, 0, ms);
     }
 
     pause(options) {

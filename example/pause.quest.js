@@ -1,4 +1,3 @@
-
 task('Pause Verification', () => {
 
     step('Perform Pause', x => {
