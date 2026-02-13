@@ -190,8 +190,17 @@ class Test extends Expect {
         return utils.stringLimit(value, length, suffix);
     }
 
-    setOptions(options) {
-        this.options = options;
+    setOption(name, value) {
+        if (name == undefined) return;
+        if (this.options == undefined) this.options = {};
+        const search = ('' + name).toLowerCase();
+        let key = Object.keys(this.options).find(name => name.toLowerCase() === search);
+        if (value == undefined) {
+            if (key != undefined) delete this.options[key];
+        } else {
+            if (key == undefined) key = name;
+            this.options[key] = value;
+        }
     }
 
     result(o) {
@@ -313,6 +322,7 @@ class Test extends Expect {
         const request = {};
         const response = {};
         const summary = {};
+        const effectiveOptions = { ...(this.options ?? {}), ...(options ?? {}) };
         url = '' + (url ?? '');
         if (url === '') throw Error('Empty endpoint address');
         if (utils.getProtocol(url) === '') {
@@ -365,9 +375,7 @@ class Test extends Expect {
         summary.method = method;
         if (payload) summary.request = payload;
 
-
-
-        if (options?.silent !== true) {
+        if (effectiveOptions?.silent !== true) {
             let anonymous = true;
             for (const header in request.headers) {
                 if (header.toLowerCase() === 'authorization') {
@@ -389,8 +397,8 @@ class Test extends Expect {
             headers,
             body,
             options: {
-                timeout: options?.timeout ?? this.options?.timeout ?? this.timeout,
-                insecure: options?.insecure ?? this.options?.insecure ?? this.insecure,
+                timeout: effectiveOptions?.timeout ?? this.timeout,
+                insecure: effectiveOptions?.insecure ?? this.insecure,
             },
         });
 
@@ -398,7 +406,7 @@ class Test extends Expect {
         this.summary = result.summary;
         Object.assign(response, result.response);
 
-        if (response.error != undefined && options?.ignore !== true) {
+        if (response.error != undefined && effectiveOptions?.ignore !== true) {
             throw Error(response.error);
         }
 

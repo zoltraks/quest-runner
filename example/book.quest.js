@@ -17,6 +17,7 @@ task('Authentication', () => {
 
     step('Obtain JWT token', x => {
         x.setBase(process.env.REMOTE || REMOTE);
+        x.setInsecure();
 
         const payload = {
             grant_type: 'client_credentials',
@@ -28,8 +29,7 @@ task('Authentication', () => {
             'POST',
             '/api/auth/token',
             payload,
-            null,
-            { insecure: true }
+            null
         );
 
         const response = x.getResponse();
@@ -54,8 +54,7 @@ task('Book Retrieval', () => {
             'GET',
             '/api/books',
             null,
-            null,
-            { insecure: true }
+            null
         );
 
         const response = x.getResponse();
@@ -83,8 +82,7 @@ task('Book Insertion', () => {
             'POST',
             '/api/books',
             newBook,
-            null,
-            { insecure: true }
+            null
         );
 
         const response = x.getResponse();
@@ -106,8 +104,7 @@ task('Book Insertion', () => {
             'GET',
             '/api/books',
             null,
-            null,
-            { insecure: true }
+            null
         );
 
         const response = x.getResponse();
@@ -136,8 +133,7 @@ task('Book Insertion', () => {
                 'PUT',
                 `/api/books/${bookId}`,
                 updatedBook,
-                null,
-                { insecure: true }
+                null
             );
 
             const response = x.getResponse();
@@ -154,8 +150,7 @@ task('Book Insertion', () => {
                 'GET',
                 '/api/books',
                 null,
-                null,
-                { insecure: true }
+                null
             );
 
             const response = x.getResponse();
@@ -182,8 +177,7 @@ task('Book Insertion', () => {
                 'DELETE',
                 `/api/books/${bookId}`,
                 null,
-                null,
-                { insecure: true }
+                null
             );
 
             const response = x.getResponse();
@@ -200,8 +194,7 @@ task('Book Insertion', () => {
                 'GET',
                 '/api/books',
                 null,
-                null,
-                { insecure: true }
+                null
             );
 
             const response = x.getResponse();
