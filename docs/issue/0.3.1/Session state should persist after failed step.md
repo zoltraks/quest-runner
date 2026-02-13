@@ -10,17 +10,27 @@ If any of the following is updated during a step, it should persist for subseque
 
 - Base URL set by `x.setBase()`
 
-- Parameters set by `x.setParameter()`
+- Parameters set by `x.setParameter(name, value)`
 
-- Authorization set by `x.setAuthorization()`
+- Persisted request headers set by `x.setHeader()`
 
-- Content type set by `x.setContentType()`
+  This includes headers set via `x.setAuthorization()` and `x.setContentType()`, which should continue setting `Authorization` and `Content-Type` headers (i.e. keep the current behavior).
+
+- Options set by `x.setOption(name, value)`
+
+  Similar to `x.setParameter()`, `x.setOption()` should require at least a name.
+
+  If a second parameter `value` is passed, it sets the option.
+
+  If the second parameter is omitted, the option with the given name is removed.
+
+  In particular, `timeout` and `insecure` should be part of options and should persist.
 
 The above values should remain overridable later in the scenario by calling the same setter again.
 
-Regular request headers should NOT implicitly persist across steps.
+When `x.call()` is used with custom headers and options, they must be merged with the persisted headers and options.
 
-They should be configured per step (or per request) explicitly.
+Per-call values should override persisted values.
 
 This should be implemented as a runtime behavior change (runner/Test implementation).
 
@@ -56,28 +66,24 @@ CALL GET https:///api/books
 ERROR Failed to parse HTTP response: getaddrinfo ENOTFOUND api
 ```
 
-## Notes / Possible Fix Direction
+## Notes
 
-- The runner persists `base`, `parameters`, and `headers` back to the outer variables only at the bottom of the step execution loop.
-
-- If an exception is thrown before reaching that point, the updated state is lost.
+- The current behavior is that the runner persists `base`, `parameters`, `headers` back to the outer variables only at the bottom of the step execution loop and if an exception is thrown before reaching that point, the updated state is lost.
 
 - Consider persisting selected session state in a `finally` block per step.
 
-- Consider separating persistent state from step-local headers.
+- Persist `base`, `parameters`, `headers` and `options` changes even if a step fails.
 
-  For example, keep persistent values like base/parameters/auth/content-type, but avoid persisting arbitrary headers unless explicitly marked as persistent.
+  This includes values set via `x.setBase()`, `x.setParameter()`, `x.setHeader()` and `x.setOption()`, as well as values managed by helper methods like `x.setAuthorization()`, `x.setContentType()`, and `x.setInsecure()`.
 
-- A possible implementation approach is to persist `Authorization` and `Content-Type` as dedicated fields on `Test` (not as parameters), similar to fields like `base`, `timeout`, or `insecure`.
+  When `x.call()` is executed, merge persisted values with per-call values in the following precedence order:
 
-  `x.setAuthorization()` and `x.setContentType()` would update these dedicated fields.
+  - persisted `headers`
+  - per-call headers (step-local)
 
-  When building request headers, merge them in the following precedence order:
+  and similarly:
 
-  - `Test`-level `authorization` / `contentType` fields (persistent defaults)
-
-  - headers provided for the current call (step-local)
-
-  This way, if `Authorization` or `Content-Type` is set or passed as headers for a request, it overrides the persisted field values.
+  - persisted `options`
+  - per-call options (step-local)
 
 - After implementing this behavior change, update `README.md` to document the new persistence rules and header precedence.
