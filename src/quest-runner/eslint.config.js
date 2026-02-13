@@ -16,7 +16,7 @@ module.exports = [
         rules: {
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'no-undef': 'error',
-            'no-multiple-empty-lines': ['warn', { max: 1, maxBOF: 0, maxEOF: 0 }],
+            'no-multiple-empty-lines': ['warn', { max: 1, maxBOF: 1, maxEOF: 0 }],
             'no-var': 'warn',
             'prefer-const': 'warn',
             'semi': ['warn', 'always'],
