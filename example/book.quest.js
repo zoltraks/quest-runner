@@ -17,6 +17,7 @@ task('Authentication', () => {
 
     step('Obtain JWT token', x => {
         x.setBase(process.env.REMOTE || REMOTE);
+        x.setInsecure();
 
         const payload = {
             grant_type: 'client_credentials',
