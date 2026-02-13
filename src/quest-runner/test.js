@@ -263,6 +263,14 @@ class Test extends Expect {
         return this.timeout;
     }
 
+    setInsecure(value) {
+        if (value === undefined) {
+            value = true;
+        }
+        this.insecure = value === true;
+        this.options = { ...this.options, insecure: this.insecure };
+    }
+
     acceptSelfSignedCertificate(value) {
         if (value === false) {
             this.options = { ...this.options, insecure: false };

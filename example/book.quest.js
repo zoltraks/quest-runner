@@ -50,7 +50,6 @@ task('Authentication', () => {
 task('Book Retrieval', () => {
 
     step('Get all books', x => {
-
         x.call(
             'GET',
             '/api/books',
@@ -151,7 +150,6 @@ task('Book Insertion', () => {
         });
 
         step('Verify book update', x => {
-
             x.call(
                 'GET',
                 '/api/books',
