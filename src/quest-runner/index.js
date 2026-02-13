@@ -155,6 +155,9 @@ const run = async argv => {
             console.log();
 
             state.test = new Test();
+            if (argv?.insecure === true) {
+                state.test.setInsecure();
+            }
             state.test.base = base;
             state.test.parameters = parameters;
             if (headers) state.test.headers = headers;

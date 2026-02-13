@@ -347,11 +347,15 @@ task(() => {
 
 Using self signed certificates is not good practice.
 
+If you want to allow insecure HTTPS connections globally, you can use the command line option ``--insecure`` (short ``-k``).
+
 However, you can globally allow insecure connections by setting `INSECURE` environment variable to `1`, `TRUE` or `YES`.
 
 ```sh
 export INSECURE=1
 ```
+
+You can also enable or disable insecure mode in the scenario code using ``x.setInsecure()``.
 
 Result of last ``x.call()`` can be taken using ``x.getResponse()``.
 
