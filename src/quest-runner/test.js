@@ -4,6 +4,11 @@ const utils = require('./utils.js');
 
 const { Expect } = require('./expect.js');
 
+function findKeyCaseInsensitive(dictionary, name) {
+    const search = ('' + name).toLowerCase();
+    return Object.keys(dictionary ?? {}).find(key => key?.toLowerCase() === search);
+}
+
 class Test extends Expect {
 
     constructor() {
@@ -64,8 +69,7 @@ class Test extends Expect {
 
     setHeader(header, value) {
         if (this.headers == undefined) this.headers = {};
-        const search = header.toLowerCase();
-        const key = Object.keys(this.headers).find(key => key?.toLowerCase() === search);
+        const key = findKeyCaseInsensitive(this.headers, header);
         if (key) {
             if (value === null || value === undefined) {
                 delete this.headers[key];
@@ -98,15 +102,12 @@ class Test extends Expect {
     }
 
     getHeader(header) {
-        const search = header.toLowerCase();
-        const key = Object.keys(this.headers).find(key => key?.toLowerCase() === search);
+        const key = findKeyCaseInsensitive(this.headers, header);
         return '' + (this.headers[key] ?? '');
     }
 
     hasHeader(header) {
-        const search = header.toLowerCase();
-        const key = Object.keys(this.headers).find(key => key?.toLowerCase() === search);
-        return key != undefined;
+        return findKeyCaseInsensitive(this.headers, header) != undefined;
     }
 
     getHeaders() {
@@ -120,8 +121,7 @@ class Test extends Expect {
             if (argument == undefined) continue;
             for (const field in argument) {
                 if (!argument.hasOwnProperty(field)) continue;
-                const search = field.toLowerCase();
-                const key = Object.keys(dictionary).find(key => key?.toLowerCase() === search);
+                const key = findKeyCaseInsensitive(dictionary, field);
                 if (key != undefined) delete dictionary[key];
                 dictionary[field] = argument[field];
             }
@@ -144,8 +144,7 @@ class Test extends Expect {
     getParameter(name) {
         if (name == undefined) return;
         if (this.parameters == undefined) return undefined;
-        const search = name.toLowerCase();
-        const key = Object.keys(this.parameters).find(name => name.toLowerCase() === search);
+        const key = findKeyCaseInsensitive(this.parameters, name);
         return key == undefined ? undefined : this.parameters[key];
 
     }
@@ -153,8 +152,7 @@ class Test extends Expect {
     setParameter(name, value) {
         if (name == undefined) return;
         if (this.parameters == undefined) this.parameters = {};
-        const search = name.toLowerCase();
-        let key = Object.keys(this.parameters).find(name => name.toLowerCase() === search);
+        let key = findKeyCaseInsensitive(this.parameters, name);
         if (value == undefined) {
             if (key != undefined) delete this.parameters[key];
         } else {
@@ -193,8 +191,7 @@ class Test extends Expect {
     setOption(name, value) {
         if (name == undefined) return;
         if (this.options == undefined) this.options = {};
-        const search = ('' + name).toLowerCase();
-        let key = Object.keys(this.options).find(name => name.toLowerCase() === search);
+        let key = findKeyCaseInsensitive(this.options, name);
         if (value == undefined) {
             if (key != undefined) delete this.options[key];
         } else {
@@ -447,19 +444,13 @@ class Test extends Expect {
 
     pause(options) {
         if (typeof options === 'string') options = { text: options };
-        const { spawnSync } = require('child_process');
-        const path = require('path');
-        const helperPath = path.join(__dirname, 'pause.js');
 
         const config = {
             text: options?.text,
             time: options?.time,
         };
 
-        spawnSync('node', [helperPath, JSON.stringify(config)], {
-            stdio: 'inherit',
-            windowsHide: true,
-        });
+        utils.runHelper('pause.js', config, { stdio: 'inherit' });
 
         if (options?.text != undefined) {
             console.log();
@@ -468,8 +459,6 @@ class Test extends Expect {
 
     execute(request) {
         const { method, url, headers, body, options } = request;
-        const { spawnSync } = require('child_process');
-        const path = require('path');
 
         const response = {
             url,
@@ -507,13 +496,10 @@ class Test extends Expect {
                 config.insecure = true;
             }
 
-            const helperPath = path.join(__dirname, 'request.js');
-
             start = performance.now();
-            const proc = spawnSync('node', [helperPath, JSON.stringify(config)], {
+            const proc = utils.runHelper('request.js', config, {
                 encoding: 'utf8',
                 timeout: options?.timeout || 30000,
-                windowsHide: true,
             });
             taken = performance.now() - start;
 
@@ -554,13 +540,13 @@ class Test extends Expect {
                     summary.response = response.data;
                     summary.status = response.status;
 
-                    if (response.error && options?.ignore !== true) {
-                        throw new Error(response.error);
-                    }
-
                 } catch (parseError) {
                     const error = new Error(`Failed to parse HTTP response: ${parseError.message}`);
                     this.handleError(error, response, summary);
+                }
+
+                if (response.error && options?.ignore !== true) {
+                    throw new Error(response.error);
                 }
             } else {
                 const error = new Error('No response from HTTP helper');

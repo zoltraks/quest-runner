@@ -26,8 +26,7 @@ async function main() {
         const file = await locateScriptFile(name);
         const exists = await fileExists(file);
         if (!exists) return;
-        if (command == undefined) {
-        } else if (command === 'play' || command === 'list') {
+        if (command === 'play' || command === 'list') {
             argv.file = file;
             const code = '' + await fs.readFile(file);
             // eslint-disable-next-line no-unused-vars
@@ -41,9 +40,6 @@ async function main() {
                 if (argv.draw) result.draw();
                 result.print();
             }
-        } else if (command === 'list') {
-            argv.file = file;
-            process.env.MODE = 'list';
         }
     }
     catch (error) {

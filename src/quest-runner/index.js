@@ -181,8 +181,7 @@ const run = async argv => {
                     index++;
                     continue;
                 }
-                let name = step.name == undefined ? '' : step.name;
-                if (Array.isArray(name)) name = name.length == 0 ? '' : name[0] != undefined ? name[0] : '';
+                const name = utils.stepDisplayName(step) ?? '';
 
                 console.log(`${ansi.redBright('STEP')} ${ansi.bgRed(' ' + ansi.whiteBright(1 + index) + ' ')}${name ? ' ' + ansi.greenBright(name) : ''}`);
                 if (argv.operation !== 'list') console.log();
@@ -205,17 +204,11 @@ const run = async argv => {
                         const originalLog = console.log;
                         const originalError = console.error;
                         console.log = (...args) => {
-                            // empty = false;
-                            // console.log = originalLog;
-                            // console.log(args);
                             const line = args.join('');
                             empty = line.length === 0 || line.endsWith('\n');
                             originalLog(...args);
                         };
                         console.error = (...args) => {
-                            // empty = false;
-                            // console.error = originalError;
-                            // console.error(args);
                             const line = args.join('');
                             empty = line.length === 0 || line.endsWith('\n');
                             originalError(...args);

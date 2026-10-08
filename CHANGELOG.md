@@ -1,5 +1,19 @@
 # Changes
 
+## Version 0.3.3
+
+Bug fixes and internal refactoring since 0.3.2.
+
+- Fixed transport errors being mislabeled as HTTP response parse failures by throwing helper errors outside the JSON parsing block.
+- Fixed `result.print()` reading `hideStepResult` instead of `hideStepError`, so the error column can now be suppressed independently.
+- Fixed `sizeName` option precedence so the `config` value is honored and the `SIZE_STEP_NAME` environment fallback is computed explicitly.
+- Fixed `assertFalse` failure messages to quote string values and `assertNull` to report the received value.
+- Fixed a spelling error in the `--draw` option help text.
+- Refactored internal duplication without changing behavior: shared helper-runner for `execute()`, `pause()`, and `expectAlive()`, unified step display-name resolution, shared case-insensitive key lookup, and a lookup table replacing the diagram styling switch.
+- Removed dead code: commented console interception lines, an unreachable `list` branch, and an empty command guard in `bin.js`.
+- Expanded `example/book.quest.js` to cover PATCH operations and error paths (400, 401, 403, 404 responses).
+- Improved documentation structure, engineering standards, and workflow guidance under `.ai/` and `docs/`.
+
 ## Version 0.3.2
 
 Runner stability and workflow improvements since 0.3.1.

@@ -1,13 +1,13 @@
 class Utils {
 
     getTimeString = date => {
-        let μ = '';
+        let fraction = '';
         if (!date) {
             const { hrtime } = require('node:process');
-            μ = '.' + ((hrtime.bigint() % 1000000000n / 1000n) + '').padStart(6, '0');
+            fraction = '.' + ((hrtime.bigint() % 1000000000n / 1000n) + '').padStart(6, '0');
             date = new Date();
         } else {
-            μ = '.' + String(date.getMilliseconds()).padStart(3, '0');
+            fraction = '.' + String(date.getMilliseconds()).padStart(3, '0');
         }
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -15,7 +15,7 @@ class Utils {
         const hour = String(date.getHours()).padStart(2, '0');
         const minute = String(date.getMinutes()).padStart(2, '0');
         const second = String(date.getSeconds()).padStart(2, '0');
-        const text = `${year}-${month}-${day} ${hour}:${minute}:${second}${μ}`;
+        const text = `${year}-${month}-${day} ${hour}:${minute}:${second}${fraction}`;
         return text;
     };
 
@@ -42,22 +42,22 @@ class Utils {
         const past = one > two;
         if (past) [one, two] = [two, one];
         let difference = two.getTime() - one.getTime();
-        const total = { difference };
+        const total = {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor(difference / (1000 * 60 * 60)),
+            minutes: Math.floor(difference / (1000 * 60)),
+            seconds: Math.floor(difference / 1000),
+            milliseconds: difference,
+        };
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        total.days = Math.floor(total.difference / (1000 * 60 * 60 * 24));
         difference -= days * (1000 * 60 * 60 * 24);
         const hours = Math.floor(difference / (1000 * 60 * 60));
-        total.hours = Math.floor(total.difference / (1000 * 60 * 60));
         difference -= hours * (1000 * 60 * 60);
         const minutes = Math.floor(difference / (1000 * 60));
-        total.minutes = Math.floor(total.difference / (1000 * 60));
         difference -= minutes * (1000 * 60);
         const seconds = Math.floor(difference / 1000);
-        total.seconds = Math.floor(total.difference / 1000);
         difference -= seconds * 1000;
         const milliseconds = difference;
-        total.milliseconds = total.difference;
-        delete total.difference;
         const result = {
             days: days,
             hours: hours,
@@ -86,6 +86,19 @@ class Utils {
     });
 
     getRandomInteger = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    stepDisplayName = step => {
+        let name = step.name;
+        if (Array.isArray(name)) name = name.length ? name[0] : undefined;
+        return name;
+    };
+
+    runHelper = (file, args, options) => {
+        const { spawnSync } = require('child_process');
+        const path = require('path');
+        const helperPath = path.join(__dirname, file);
+        return spawnSync('node', [helperPath, JSON.stringify(args)], { windowsHide: true, ...options });
+    };
 
     getProtocol = url => {
         if (url == undefined) return url;

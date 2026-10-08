@@ -45,8 +45,7 @@ class Expect extends Assert {
     }
 
     expectAlive(host, config, message) {
-        const { spawnSync } = require('child_process');
-        const path = require('path');
+        const utils = require('./utils.js');
         const ansi = require('ansi-colors');
 
         if (host == undefined || typeof (host) !== 'string' || !(host = host.trim()).length) return;
@@ -60,7 +59,6 @@ class Expect extends Assert {
 
         const result = { host, alive: false };
 
-        const helperPath = path.join(__dirname, 'ping.js');
         const args = {
             host,
             options: {
@@ -69,10 +67,9 @@ class Expect extends Assert {
         };
 
         try {
-            const proc = spawnSync('node', [helperPath, JSON.stringify(args)], {
+            const proc = utils.runHelper('ping.js', args, {
                 encoding: 'utf8',
                 timeout: (timeout + 2) * 1000,
-                windowsHide: true,
             });
 
             if (proc.error) {

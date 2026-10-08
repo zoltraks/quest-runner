@@ -15,7 +15,7 @@ class Assert {
         }
         if (!message) {
             let s = '' + o;
-            if (typeof o === 'string') o = `"${o}"`;
+            if (typeof o === 'string') s = `"${s}"`;
             const w = 40;
             if (s.length > w) s = s.substring(0, w - 4) + '...';
             if (s.length > 0) s = ' for ' + s;
@@ -39,7 +39,7 @@ class Assert {
             return;
         }
         if (!message) {
-            let s = '' + message;
+            let s = '' + o;
             const w = 40;
             if (s.length > w) s = s.substring(0, w - 4) + '...';
             if (s.length > 0) s = ` for "${s}"`;

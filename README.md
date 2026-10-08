@@ -42,7 +42,7 @@ task(() => {
 This is the minimal task with only one step.
 
 ```
-npx quest-runner
+npx quest-runner play
 ```
 
 Running this command will look for the first file whose name ends with ``.quest.js`` in the current directory.
@@ -54,13 +54,13 @@ You should see results of running this simple scenario.
 If you have more than one file whose name ends with ``.quest.js``, you may specify the file that should be used by quest-runner.
 
 ```
-npx quest-runner run my.quest.js
+npx quest-runner play my.quest.js
 ```
 
 You can omit ``.quest.js`` filename extension. 
 
 ```
-npx quest-runner run my
+npx quest-runner play my
 ```
 
 If all steps succeed, the return code will be ``0`` (success).
@@ -891,6 +891,14 @@ Combine options as a function parameter, customizing the text and setting a time
 ```js
 await x.pause({ text: 'Wait 3 seconds or press enter...', time: 3 });
 ```
+
+Block step execution for a given number of milliseconds.
+
+```js
+x.wait(1000);
+```
+
+The wait is synchronous, so no ``async`` or ``await`` is needed.
 
 ## Environment variables ##
 

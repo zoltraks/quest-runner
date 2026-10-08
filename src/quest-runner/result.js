@@ -1,11 +1,28 @@
 const ansi = require('ansi-colors');
 
+const STEP_STYLE = {
+    '<>': ['<<', '>>', x => ansi.bgMagenta(ansi.white(x))],
+    '()': ['((', '))', x => ansi.bgYellow(ansi.black(x))],
+    '{}': ['{}', '{}', x => ansi.bgGreen(ansi.black(x))],
+    '::': ['::', '::', x => ansi.bgBlackBright(ansi.white(x))],
+    '!!': ['!!', '!!', x => ansi.bgRed(ansi.white(x))],
+    '..': ['..', '..', x => ansi.bgYellow(ansi.black(x))],
+    '[]': ['[[', ']]', x => ansi.bgBlue(ansi.white(x))],
+    'condition': ['<<', '>>', x => ansi.bgMagenta(ansi.white(x))],
+    'operation': ['{}', '{}', x => ansi.bgGreen(ansi.black(x))],
+    'internal': ['::', '::', x => ansi.bgBlackBright(ansi.white(x))],
+    'event': ['((', '))', x => ansi.bgYellow(ansi.black(x)), 'EVENT'],
+    'start': ['((', '))', x => ansi.bgGreen(ansi.black(x)), 'START'],
+    'stop': ['((', '))', x => ansi.bgRed(ansi.black(x)), 'STOP'],
+};
+
 class Result {
 
     constructor() {
     }
 
     draw() {
+        const utils = require('./utils');
         if (this.stack.length <= 0) return;
 
         const sizeName = 40;
@@ -49,73 +66,18 @@ class Result {
             }
 
             const step = execution.step;
-            let display = '' + (step.name ? (Array.isArray(step.name) ? (step.name[0] ? step.name[0] : step.index + 1) : step.name) : step.index + 1);
+            let display = '' + (utils.stepDisplayName(step) || step.index + 1);
             if (display.length > sizeName) display = display.substring(0, sizeName - 3) + '...';
             if (step.name === '') display = '';
 
             let operation = step.info?.type;
             if (!operation) operation = '';
             else operation = operation.toLowerCase();
-            switch (operation) {
-            case '<>':
-            case 'condition':
-                prefix = '<<';
-                suffix = '>>';
-                color = x => ansi.bgMagenta(ansi.white(x));
-                break;
-            case '()':
-                prefix = '((';
-                suffix = '))';
-                color = x => ansi.bgYellow(ansi.black(x));
-                break;
-            case '{}':
-            case 'operation':
-                prefix = '{}';
-                suffix = '{}';
-                color = x => ansi.bgGreen(ansi.black(x));
-                break;
-            case '::':
-            case 'internal':
-                prefix = '::';
-                suffix = '::';
-                color = x => ansi.bgBlackBright(ansi.white(x));
-                break;
-            case '!!':
-                prefix = '!!';
-                suffix = '!!';
-                color = x => ansi.bgRed(ansi.white(x));
-                break;
-            case '..':
-                prefix = '..';
-                suffix = '..';
-                color = x => ansi.bgYellow(ansi.black(x));
-                break;
-            case 'event':
-                prefix = '((';
-                suffix = '))';
-                color = x => ansi.bgYellow(ansi.black(x));
-                if (display === '') display = 'EVENT';
-                break;
-            case 'start':
-                prefix = '((';
-                suffix = '))';
-                color = x => ansi.bgGreen(ansi.black(x));
-                if (display === '') display = 'START';
-                break;
-            case 'stop':
-                prefix = '((';
-                suffix = '))';
-                color = x => ansi.bgRed(ansi.black(x));
-                if (display === '') display = 'STOP';
-                break;
-            case '[]':
-            case 'block':
-            default:
-                prefix = '[[';
-                suffix = ']]';
-                color = x => ansi.bgBlue(ansi.white(x));
-                break;
-            }
+            const style = STEP_STYLE[operation] ?? STEP_STYLE['[]'];
+            prefix = style[0];
+            suffix = style[1];
+            color = style[2];
+            if (style[3] && display === '') display = style[3];
 
             if (step.error) {
                 prefix = '!!';
@@ -163,11 +125,12 @@ class Result {
         const utils = require('./utils');
         const ansi = require('ansi-colors');
 
-        const sizeName = config?.sizeName ?? 0 + process.env.SIZE_STEP_NAME > 0 ? process.env.SIZE_STEP_NAME : 40;
+        const envSizeName = Number(process.env.SIZE_STEP_NAME);
+        const sizeName = config?.sizeName ?? (envSizeName > 0 ? envSizeName : 40);
         const sizeResult = 80;
         const includeStart = config?.includeStart ?? utils.stringToBoolean(process.env.HIDE_START_TIME) ? false : true;
         const hideStepName = utils.stringToBoolean(config?.hideStepName != undefined ? config?.hideStepName : process.env.HIDE_STEP_NAME);
-        const hideStepError = utils.stringToBoolean(config?.hideStepError != undefined ? config?.hideStepResult : process.env.HIDE_STEP_ERROR);
+        const hideStepError = utils.stringToBoolean(config?.hideStepError != undefined ? config?.hideStepError : process.env.HIDE_STEP_ERROR);
         const hideStepResult = utils.stringToBoolean(config?.hideStepResult != undefined ? config?.hideStepResult : process.env.HIDE_STEP_RESULT);
 
         let printRuler = false;
@@ -194,7 +157,7 @@ class Result {
             }
             if (execution.step) {
                 const step = execution.step;
-                let name = '' + (step.name ? (Array.isArray(step.name) ? (step.name[0] ? step.name[0] : '') : step.name) : '');
+                let name = '' + (utils.stepDisplayName(step) || '');
                 if (execution.error || execution.result) {
                     name = name.padEnd(sizeName, ' ');
                 }
